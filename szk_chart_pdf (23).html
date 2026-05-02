@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SZKローテ</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;background:#f0f2f5;color:#111}
+@media(prefers-color-scheme:dark){body{background:#0f1117;color:#e2e8f0}}
+#app{display:flex;flex-direction:column;height:100vh;overflow:hidden;background:#fff}
+@media(prefers-color-scheme:dark){#app{background:#1a1f2e}}
+.hdr{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:0.5px solid rgba(0,0,0,0.12);background:#f8f9fb;flex-shrink:0;z-index:30;flex-wrap:wrap}
+@media(prefers-color-scheme:dark){.hdr{background:#1e2535;border-color:rgba(255,255,255,0.12)}}
+.hdr-title{font-size:15px;font-weight:500;letter-spacing:.04em}
+.body{display:flex;flex:1;overflow:hidden}
+.side{width:230px;flex-shrink:0;border-right:0.5px solid rgba(0,0,0,0.10);overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;background:#f8f9fb;transition:width .2s,padding .2s,border .2s}
+@media(prefers-color-scheme:dark){.side{background:#1e2535;border-color:rgba(255,255,255,0.10)}}
+.side.hidden{width:0;padding:0;overflow:hidden;border-right:none}
+.collapsible-hdr{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:4px 0;user-select:none}
+.collapsible-arrow{font-size:10px;color:#6b7280;transition:transform .18s}
+.collapsible-arrow.open{transform:rotate(90deg)}
+.collapsible-body{overflow:hidden;transition:max-height .2s ease}
+.collapsible-body.closed{max-height:0!important}
+.sec-lbl{font-size:11px;font-weight:500;color:#6b7280;letter-spacing:.06em}
+.form-row{display:flex;flex-direction:column;gap:3px;margin-bottom:7px}
+.form-row label{font-size:11px;color:#6b7280}
+.form-row input{font-size:12px;padding:5px 8px;border:0.5px solid rgba(0,0,0,0.2);border-radius:6px;background:#fff;color:#111;outline:none;width:100%;font-family:inherit}
+@media(prefers-color-scheme:dark){.form-row input{background:#161b27;color:#e2e8f0;border-color:rgba(255,255,255,0.2)}}
+.form-row input:focus{border-color:#1D9E75}
+.radio-row{display:flex;gap:8px;margin-top:2px;flex-wrap:wrap}
+.radio-row label{display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer}
+.radio-row input[type=radio]{width:auto;accent-color:#1D9E75}
+.molt-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.molt-row input[type=checkbox]{accent-color:#7F77DD;width:auto}
+.molt-age-wrap{display:flex;align-items:center;gap:4px;flex:1}
+.molt-age-wrap input{font-size:12px;padding:5px 8px;border:0.5px solid rgba(0,0,0,0.2);border-radius:6px;background:#fff;color:#111;outline:none;width:100%;font-family:inherit}
+@media(prefers-color-scheme:dark){.molt-age-wrap input{background:#161b27;color:#e2e8f0;border-color:rgba(255,255,255,0.2)}}
+.molt-age-wrap span{font-size:11px;color:#6b7280;white-space:nowrap}
+.btn-add{width:100%;padding:7px;background:#1D9E75;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;margin-top:2px}
+.btn-add:hover{background:#0F6E56}
+.btn-form-save{width:100%;padding:7px;background:#185FA5;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;margin-top:2px}
+.btn-form-save:hover{background:#0C447C}
+.btn-cancel{width:100%;padding:6px;background:none;border:0.5px solid rgba(0,0,0,0.15);color:#6b7280;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;margin-top:4px}
+.btn-del-lot{width:100%;padding:6px;background:none;border:0.5px solid rgba(224,92,92,0.5);color:#E24B4A;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;margin-top:6px}
+.btn-del-lot:hover{background:rgba(224,92,92,0.08)}
+.drop-zone{border:1.5px dashed rgba(0,0,0,0.2);border-radius:6px;padding:10px 8px;text-align:center;font-size:11px;color:#6b7280;cursor:pointer;transition:border-color .15s,background .15s}
+@media(prefers-color-scheme:dark){.drop-zone{border-color:rgba(255,255,255,0.2)}}
+.drop-zone.drag-over{border-color:#1D9E75;background:rgba(29,158,117,0.06);color:#1D9E75}
+.csv-hint{font-size:10px;color:#6b7280;line-height:1.6;padding:7px;background:#fff;border:0.5px solid rgba(0,0,0,0.1);border-radius:6px}
+@media(prefers-color-scheme:dark){.csv-hint{background:#161b27;border-color:rgba(255,255,255,0.1)}}
+.csv-hint code{font-family:monospace;font-size:10px;color:#1D9E75}
+.lot-item{padding:5px 7px;background:#fff;border:0.5px solid rgba(0,0,0,0.1);border-radius:6px;margin-bottom:4px;cursor:pointer;transition:border-color .15s}
+@media(prefers-color-scheme:dark){.lot-item{background:#161b27;border-color:rgba(255,255,255,0.1)}}
+.lot-item:hover{border-color:rgba(0,0,0,0.3)}
+@media(prefers-color-scheme:dark){.lot-item:hover{border-color:rgba(255,255,255,0.3)}}
+.lot-item.editing{border-color:#185FA5;background:#f0f5ff}
+@media(prefers-color-scheme:dark){.lot-item.editing{background:#1a2035}}
+.lot-item-top{display:flex;align-items:center;gap:5px;width:100%}
+.lot-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.lot-name{font-size:11px;font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lot-meta{font-size:10px;font-family:monospace;flex-shrink:0;color:#6b7280}
+.lot-sub{font-size:10px;color:#6b7280;padding-left:13px;margin-top:2px}
+.btn-hide{background:none;border:0.5px solid rgba(0,0,0,0.15);cursor:pointer;font-size:10px;padding:2px 6px;border-radius:4px;color:#6b7280;white-space:nowrap;font-family:inherit}
+.btn-hide:hover{background:rgba(0,0,0,0.05)}
+.btn-hide.is-hidden{color:#7e3af2;border-color:#7e3af2;background:rgba(126,58,242,0.08)}
+.edit-form{margin-top:8px;display:flex;flex-direction:column;gap:0}
+.edit-form .form-row{margin-bottom:5px}
+.edit-form .form-row label{font-size:10px}
+.edit-form .form-row input{font-size:11px;padding:4px 7px}
+.edit-form .radio-row label{font-size:11px}
+.edit-form .molt-row{margin-bottom:5px}
+.edit-form .molt-age-wrap input{font-size:11px;padding:4px 7px}
+.edit-form .molt-age-wrap span{font-size:10px}
+.warn-banner{background:rgba(224,92,92,0.12);border:0.5px solid rgba(224,92,92,0.4);border-radius:6px;padding:6px 10px;font-size:11px;color:#E24B4A;display:none;margin-top:4px}
+.toggle-btn{background:#f8f9fb;border:0.5px solid rgba(0,0,0,0.15);color:#6b7280;font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;white-space:nowrap;font-family:inherit}
+@media(prefers-color-scheme:dark){.toggle-btn{background:#1e2535;border-color:rgba(255,255,255,0.15)}}
+.btn-rotation{font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;white-space:nowrap;font-family:inherit;font-weight:500;transition:all .15s}
+.btn-rotation.off{background:#f8f9fb;border:0.5px solid rgba(0,0,0,0.15);color:#6b7280}
+@media(prefers-color-scheme:dark){.btn-rotation.off{background:#1e2535;border-color:rgba(255,255,255,0.15)}}
+.btn-rotation.on{background:#7e3af2;border:0.5px solid #7e3af2;color:#fff}
+.btn-log{background:#f8f9fb;border:0.5px solid rgba(0,0,0,0.15);color:#6b7280;font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;white-space:nowrap;font-family:inherit}
+@media(prefers-color-scheme:dark){.btn-log{background:#1e2535;border-color:rgba(255,255,255,0.15)}}
+.btn-csv-hdr{background:#c0392b;border:none;color:#fff;font-size:11px;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit;white-space:nowrap;font-weight:500}
+.btn-csv-hdr:hover{background:#922b21}
+.btn-pdf{background:#185FA5;border:none;color:#fff;font-size:11px;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit;white-space:nowrap;font-weight:500}
+.btn-pdf:hover{background:#0C447C}
+.divider{border:none;border-top:0.5px solid rgba(0,0,0,0.1);margin:2px 0}
+@media(prefers-color-scheme:dark){.divider{border-color:rgba(255,255,255,0.1)}}
+.chart-outer{flex:1;overflow:hidden;position:relative}
+.xaxis-top,.xaxis-bot{position:absolute;overflow:hidden;z-index:10;pointer-events:none}
+.corner-tl,.corner-bl{position:absolute;z-index:20}
+.chart-mid{position:absolute;left:0;right:0;display:flex;overflow:hidden}
+.yaxis-wrap{overflow:hidden;flex-shrink:0;position:relative;z-index:10}
+.chart-scroll{flex:1;overflow:auto;position:relative}
+#tooltip{display:none;position:absolute;background:#fff;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;padding:6px 10px;font-size:12px;pointer-events:none;z-index:100;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+@media(prefers-color-scheme:dark){#tooltip{background:#1e2535;border-color:rgba(255,255,255,0.2)}}
+.tt-name{font-weight:500;margin-bottom:3px;padding-bottom:3px;border-bottom:0.5px solid rgba(0,0,0,0.1)}
+@media(prefers-color-scheme:dark){.tt-name{border-color:rgba(255,255,255,0.1)}}
+.tt-r{display:flex;justify-content:space-between;gap:14px;color:#6b7280;margin-top:2px;font-size:11px}
+.tt-r b{color:#1D9E75;font-family:monospace}
+.log-clear{font-size:10px;color:#9ca3af;background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:4px}
+.log-clear:hover{color:#E24B4A;background:rgba(224,92,92,0.08)}
+#log-body{overflow-y:auto;max-height:200px}
+.log-entry{font-size:10px;color:#6b7280;padding:3px 0;border-bottom:0.5px solid rgba(0,0,0,0.05);line-height:1.5}
+@media(prefers-color-scheme:dark){.log-entry{border-color:rgba(255,255,255,0.06)}}
+.log-time{color:#9ca3af;margin-right:6px;font-family:monospace;font-size:10px}
+.log-lot{color:#1D9E75;font-weight:500}
+.log-key{color:#185FA5}
+.log-val{color:#111;font-family:monospace}
+@media(prefers-color-scheme:dark){.log-val{color:#e2e8f0}}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.2);border-radius:3px}
+@media(prefers-color-scheme:dark){::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.2)}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="hdr">
+    <div class="hdr-title">SZKローテ</div>
+    <button class="toggle-btn" id="toggle-btn" onclick="toggleSide()">▶ ロット管理</button>
+    <button class="btn-rotation off" id="btn-rotation" onclick="toggleRotation()">🔄 舎繰り線</button>
+    <button class="toggle-btn" id="btn-undo" onclick="undo()" title="元に戻す (Ctrl+Z)" disabled>↩ 元に戻す</button>
+    <button class="toggle-btn" id="btn-redo" onclick="redo()" title="やり直す (Ctrl+Y)" disabled>↪ やり直す</button>
+    <button class="btn-csv-hdr" onclick="exportCSV()">💾 保存</button>
+    <button class="btn-pdf" onclick="exportPDF()">PDF出力</button>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:8px;font-size:10px;color:#6b7280">
+      <span style="display:inline-block;width:16px;height:3px;background:#f59e0b;border-radius:2px;vertical-align:middle"></span>育雛1号
+      <span style="display:inline-block;width:16px;height:3px;background:#60b3f0;border-radius:2px;vertical-align:middle"></span>育雛2号
+      <span style="display:inline-block;width:16px;height:3px;background:#7F77DD;border-radius:2px;vertical-align:middle"></span>強換期
+      <span style="display:inline-block;width:9px;height:9px;border:2px solid #888;vertical-align:middle"></span>移動日
+      <span style="display:inline-block;width:14px;height:2px;background:#E24B4A;border-radius:1px;vertical-align:middle"></span>今日
+    </div>
+  </div>
+  <div class="body">
+    <div class="side hidden" id="side">
+      <div>
+        <div class="collapsible-hdr" onclick="toggleSection('csv')"><span class="sec-lbl">CSV読み込み</span><span class="collapsible-arrow" id="arrow-csv">▶</span></div>
+        <div class="collapsible-body closed" id="body-csv" style="max-height:0">
+          <div style="height:6px"></div>
+          <div class="drop-zone" id="drop-zone" onclick="document.getElementById('csv-input').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event)">クリックまたは<br>ドラッグ＆ドロップ</div>
+          <input type="file" id="csv-input" accept=".csv" style="display:none" onchange="handleFileInput(this)">
+          <div class="csv-hint" style="margin-top:6px">列順：<code>ロット名,餌付け日,アウト日齢</code><br>任意：<code>成鶏舎,育雛舎,羽数,孵化場,強換開始日齢</code></div>
+        </div>
+      </div>
+      <hr class="divider">
+      <div>
+        <div class="collapsible-hdr" onclick="toggleSection('manual')"><span class="sec-lbl">手動登録</span><span class="collapsible-arrow" id="arrow-manual">▶</span></div>
+        <div class="collapsible-body closed" id="body-manual" style="max-height:0">
+          <div style="height:6px"></div>
+          <div class="form-row"><label>ロット名</label><input id="f-name" maxlength="16"></div>
+          <div class="form-row"><label>成鶏舎</label><input id="f-house" maxlength="20" list="house-list" autocomplete="off"><datalist id="house-list"></datalist></div>
+          <div class="form-row"><label>餌付け日 *</label><input id="f-date" type="date"></div>
+          <div class="form-row"><label>アウト日齢 *</label><input id="f-age" type="number" min="1" max="999"></div>
+          <div class="warn-banner" id="age-warn">⚠ 720日齢を超えています</div>
+          <div class="form-row" style="margin-top:4px"><label>育雛舎</label><div class="radio-row"><label><input type="radio" name="brooder" value="1号" checked>1号</label><label><input type="radio" name="brooder" value="2号">2号</label><label><input type="radio" name="brooder" value="">未設定</label></div></div>
+          <div class="form-row"><label>羽数</label><input id="f-birds" type="number" min="0"></div>
+          <div class="form-row"><label>孵化場</label><input id="f-hatchery" maxlength="30"></div>
+          <div class="molt-row">
+            <input type="checkbox" id="f-molt-chk" onchange="toggleMoltInput()">
+            <label for="f-molt-chk" style="font-size:11px;color:#6b7280;cursor:pointer">強換あり</label>
+            <div class="molt-age-wrap" id="molt-age-wrap" style="display:none"><input type="number" id="f-molt-age" min="1" max="999" placeholder="開始日齢"><span>日齢〜</span></div>
+          </div>
+          <button class="btn-add" onclick="addLot()">＋ ロット追加</button>
+        </div>
+      </div>
+      <hr class="divider">
+      <div>
+        <div class="collapsible-hdr" onclick="toggleSection('lots')"><span class="sec-lbl">登録済みロット</span><span class="collapsible-arrow" id="arrow-lots">▶</span></div>
+        <div class="collapsible-body closed" id="body-lots" style="max-height:0">
+          <div style="height:6px"></div>
+          <div id="lot-list"></div>
+        </div>
+      </div>
+      <hr class="divider">
+      <div>
+        <div class="collapsible-hdr" onclick="toggleSection('log')"><span class="sec-lbl">📋 変更ログ</span><span class="collapsible-arrow" id="arrow-log">▶</span></div>
+        <div class="collapsible-body closed" id="body-log" style="max-height:0">
+          <div style="height:4px"></div>
+          <div style="display:flex;justify-content:flex-end;margin-bottom:4px">
+            <button class="log-clear" onclick="clearLog()">クリア</button>
+          </div>
+          <div id="log-body"><div style="font-size:10px;color:#9ca3af;padding:4px 0">変更履歴はありません</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="chart-outer" id="chart-outer">
+      <canvas id="cvCornerTL" class="corner-tl"></canvas>
+      <canvas id="cvCornerBL" class="corner-bl"></canvas>
+      <div class="xaxis-top" id="xaxis-top"><canvas id="cvXTop"></canvas></div>
+      <div class="xaxis-bot" id="xaxis-bot"><canvas id="cvXBot"></canvas></div>
+      <div class="chart-mid" id="chart-mid">
+        <div class="yaxis-wrap" id="yaxis-wrap"><canvas id="cvY"></canvas></div>
+        <div class="chart-scroll" id="chart-scroll">
+          <canvas id="cvMain"></canvas>
+          <div id="tooltip"><div class="tt-name" id="tt-name"></div><div id="tt-body"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+// ── 定数 ──────────────────────────────────────────
+var COLORS=['#1D9E75','#378ADD','#BA7517','#D4537E','#185FA5','#D85A30','#639922','#993556','#534AB7','#0F6E56'];
+var IKUSEI_1='#f59e0b',IKUSEI_2='#60b3f0',IKUSEI_NONE='#aaaaaa',MOLT_COLOR='#7F77DD';
+var ROT_HOUSE_COLOR='#d43030',ROT_BROOD_COLOR='#3050d0';
+var CW=38,CH=38,YW=72,XH=44,MAX_AGE=720,MAX_TRANSFER=150,MOLT_DAYS=30;
+var ROWS=Math.ceil(MAX_AGE/30);
+var DPR=Math.min(window.devicePixelRatio||1,2);
+
+// ── 状態変数 ──────────────────────────────────────
+var lots=[],nid=1,dragState=null,VIEW_COLS=120,sideOpen=false;
+var sectionOpen={csv:false,manual:false,lots:false,log:false};
+var editingId=null,showRotation=false;
+var logEntries=[],logPanelOpen=false;
+
+// ── ユーティリティ ────────────────────────────────
+function ikuseiColor(b){return b==='2号'?IKUSEI_2:b==='1号'?IKUSEI_1:IKUSEI_NONE;}
+function parseDate(s){if(!s)return null;var d=new Date(s+'T00:00:00');return isNaN(d.getTime())?null:d;}
+function addDays(d,n){var r=new Date(d.getTime());r.setDate(r.getDate()+n);return r;}
+function dim(y,m){return new Date(y,m+1,0).getDate();}
+function isDark(){return matchMedia('(prefers-color-scheme:dark)').matches;}
+function clampT(t,o){return Math.max(1,Math.min(MAX_TRANSFER,Math.min(Math.min(o,MAX_AGE),t)));}
+function fmtAgeDate(feed,age){var d=addDays(feed,age);return age+'日齢（'+d.toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'})+'）';}
+function getLotName(id){for(var i=0;i<lots.length;i++){if(lots[i].id===id)return lots[i].name||'ロット'+lots[i].id;}return 'ロット'+id;}
+
+// ── ログ ────────────────────────────────────────
+function clearLog(){logEntries=[];renderLog();}
+function renderLog(){
+  var el=document.getElementById('log-body');
+  if(!logEntries.length){el.innerHTML='<div style="font-size:10px;color:#9ca3af;padding:4px 0">変更履歴はありません</div>';return;}
+  el.innerHTML=logEntries.slice().reverse().map(function(e){
+    return '<div class="log-entry"><span class="log-time">'+e.time+'</span>'+e.msg+'</div>';
+  }).join('');
+}
+function addLog(msg){
+  var now=new Date();
+  var t=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
+  logEntries.push({time:t,msg:msg});
+  if(logEntries.length>200)logEntries.shift();
+  renderLog();
+  if(!logPanelOpen){
+    var ti=document.getElementById('log-hdr-title');
+    if(ti){ti.style.color='#1D9E75';setTimeout(function(){ti.style.color='';},1400);}
+  }
+}
+function logChange(lotName,key,val){
+  addLog('<span class="log-lot">'+lotName+'</span>の<span class="log-key">'+key+'</span>を<span class="log-val">'+val+'</span>に変更');
+}
+
+// ── UI操作 ────────────────────────────────────────
+function toggleMoltInput(){document.getElementById('molt-age-wrap').style.display=document.getElementById('f-molt-chk').checked?'flex':'none';}
+function toggleSection(id){
+  sectionOpen[id]=!sectionOpen[id];
+  var b=document.getElementById('body-'+id),a=document.getElementById('arrow-'+id);
+  if(sectionOpen[id]){b.classList.remove('closed');b.style.maxHeight=id==='csv'?'200px':id==='manual'?'640px':'800px';a.classList.add('open');}
+  else{b.classList.add('closed');a.classList.remove('open');}
+}
+function toggleSide(){
+  sideOpen=!sideOpen;
+  document.getElementById('side').classList.toggle('hidden',!sideOpen);
+  document.getElementById('toggle-btn').textContent=sideOpen?'◀ ロット管理':'▶ ロット管理';
+  setTimeout(initSizes,220);
+}
+function toggleRotation(){
+  showRotation=!showRotation;
+  document.getElementById('btn-rotation').className='btn-rotation '+(showRotation?'on':'off');
+  redraw();
+}
+
+// ── 成鶏舎datalist更新 ────────────────────────────
+function updateHouseList(){
+  var dl=document.getElementById('house-list');if(!dl)return;
+  var seen={},opts='';
+  lots.forEach(function(l){if(l.house&&!seen[l.house]){seen[l.house]=1;opts+='<option value="'+l.house.replace(/"/g,'&quot;')+'">';}});
+  dl.innerHTML=opts;
+}
+
+// ── グラフ座標 ────────────────────────────────────
+function getBaseYear(){var y=new Date().getFullYear()-1;lots.forEach(function(l){var d=parseDate(l.feedDate);if(d&&d.getFullYear()<y)y=d.getFullYear();});return y;}
+function getNeededCols(){var m=VIEW_COLS,b=getBaseYear();lots.forEach(function(l){var f=parseDate(l.feedDate);if(!f||!l.outAge)return;var e=addDays(f,parseInt(l.outAge));var c=(e.getFullYear()-b)*12+e.getMonth()+3;if(c>m)m=c;});return Math.max(VIEW_COLS,m);}
+function toXY(date,age,by){var col=(date.getFullYear()-by)*12+date.getMonth();var frac=(date.getDate()-1)/dim(date.getFullYear(),date.getMonth());return{x:(col+frac)*CW,y:(ROWS-Math.min(age,MAX_AGE)/30)*CH};}
+function posToDate(px,by){var col=px/CW,ci=Math.floor(col);var yr=by+Math.floor(ci/12),mo=((ci%12)+12)%12;var d=dim(yr,mo),day=Math.max(1,Math.min(d,Math.round((col-ci)*d)+1));return new Date(yr,mo,day);}
+function posToAge(py){return Math.max(1,Math.min(MAX_AGE,Math.round((ROWS-py/CH)*30)));}
+
+// ── Canvas描画ユーティリティ ─────────────────────
+function setupCv(id,w,h){var el=document.getElementById(id);el.width=Math.round(w*DPR);el.height=Math.round(h*DPR);el.style.width=w+'px';el.style.height=h+'px';var ctx=el.getContext('2d');ctx.scale(DPR,DPR);return ctx;}
+function rrect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();}
+function diamond(ctx,x,y,s,fc,sc,sw){ctx.fillStyle=fc;ctx.strokeStyle=sc;ctx.lineWidth=sw||1.5;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(x,y-s);ctx.lineTo(x+s,y);ctx.lineTo(x,y+s);ctx.lineTo(x-s,y);ctx.closePath();ctx.fill();ctx.stroke();}
+function moltLabel(ctx,px,py,l1,l2,color,W,H,dark){
+  var fs=11;ctx.font='500 '+fs+'px monospace';
+  var lw=Math.max(ctx.measureText(l1).width,ctx.measureText(l2).width)+12,lh=fs*2+10;
+  var lx=px+8,ly=py+6;if(lx+lw>W)lx=px-lw-6;if(ly+lh>H)ly=py-lh-4;if(lx<0)lx=2;
+  ctx.fillStyle=dark?'rgba(20,25,40,0.92)':'rgba(255,255,255,0.95)';ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.setLineDash([]);
+  rrect(ctx,lx,ly,lw,lh,3);ctx.fill();ctx.stroke();
+  ctx.fillStyle=color;ctx.textAlign='left';ctx.font='500 '+fs+'px monospace';ctx.fillText(l1,lx+6,ly+fs+1);
+  ctx.font='500 '+(fs-1)+'px monospace';ctx.fillText(l2,lx+6,ly+fs*2+4);
+}
+
+// ── 舎繰り線 ─────────────────────────────────────
+function drawDashArrow(ctx,x1,y1,x2,y2,color){
+  var ang=Math.atan2(y2-y1,x2-x1),hs=14;
+  var ex=x2-hs*0.7*Math.cos(ang),ey=y2-hs*0.7*Math.sin(ang);
+  ctx.save();
+  ctx.strokeStyle=color;ctx.lineWidth=5;ctx.setLineDash([10,6]);ctx.lineCap='round';ctx.globalAlpha=1;
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(ex,ey);ctx.stroke();
+  ctx.setLineDash([]);ctx.fillStyle=color;
+  ctx.beginPath();ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-hs*Math.cos(ang-0.45),y2-hs*Math.sin(ang-0.45));
+  ctx.lineTo(x2-hs*Math.cos(ang+0.45),y2-hs*Math.sin(ang+0.45));
+  ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+function calcHouseRotations(){
+  var result=[],byHouse={};
+  lots.forEach(function(l){
+    if(l.hidden)return;
+    var feed=parseDate(l.feedDate);if(!feed||!l.outAge||!l.house)return;
+    var age=parseInt(l.outAge),dispAge=Math.min(age,MAX_AGE);
+    var tAge=clampT((l.transferAge!==undefined)?l.transferAge:Math.min(120,dispAge),age);
+    byHouse[l.house]=byHouse[l.house]||[];
+    byHouse[l.house].push({feed:feed,outDate:addDays(feed,dispAge),realOutDate:addDays(feed,age),transferDate:addDays(feed,tAge),dispAge:dispAge,tAge:tAge});
+  });
+  Object.keys(byHouse).forEach(function(house){
+    var arr=byHouse[house];arr.sort(function(a,b){return a.feed-b.feed;});
+    for(var i=0;i<arr.length-1;i++){
+      var prev=arr[i],next=arr[i+1];
+      result.push({label:house,fromDate:prev.outDate,fromAge:prev.dispAge,toDate:next.transferDate,toAge:next.tAge,days:Math.round((next.transferDate-prev.realOutDate)/86400000),color:ROT_HOUSE_COLOR});
+    }
+  });
+  return result;
+}
+function calcBroodRotations(){
+  var result=[],byBrood={};
+  lots.forEach(function(l){
+    if(l.hidden)return;
+    var feed=parseDate(l.feedDate);if(!feed||!l.outAge||!l.brooder)return;
+    var age=parseInt(l.outAge),dispAge=Math.min(age,MAX_AGE);
+    var tAge=clampT((l.transferAge!==undefined)?l.transferAge:Math.min(120,dispAge),age);
+    byBrood[l.brooder]=byBrood[l.brooder]||[];
+    byBrood[l.brooder].push({feed:feed,transferDate:addDays(feed,tAge),tAge:tAge});
+  });
+  Object.keys(byBrood).forEach(function(brood){
+    var arr=byBrood[brood];arr.sort(function(a,b){return a.feed-b.feed;});
+    for(var i=0;i<arr.length-1;i++){
+      var prev=arr[i],next=arr[i+1];
+      result.push({label:brood,fromDate:prev.transferDate,fromAge:prev.tAge,toDate:next.feed,toAge:0,days:Math.round((next.feed-prev.transferDate)/86400000),color:ROT_BROOD_COLOR});
+    }
+  });
+  return result;
+}
+function drawRotationLines(ctx,by,W,H){
+  var rots=[].concat(calcHouseRotations(),calcBroodRotations());
+  rots.forEach(function(r){
+    var p1=toXY(r.fromDate,r.fromAge,by),p2=toXY(r.toDate,r.toAge,by);
+    drawDashArrow(ctx,p1.x,p1.y,p2.x,p2.y,r.color);
+    var mx=(p1.x+p2.x)/2,my=(p1.y+p2.y)/2;
+    ctx.font='bold 12px monospace';
+    var lw=Math.max(ctx.measureText(r.days+'日').width,ctx.measureText(r.label).width)+12,lh=26;
+    var lx=mx-lw/2,ly=my-lh/2;
+    ctx.globalAlpha=0.97;
+    ctx.fillStyle=isDark()?'rgba(15,20,35,0.97)':'rgba(255,255,255,0.97)';
+    ctx.strokeStyle=r.color;ctx.lineWidth=2;ctx.setLineDash([]);
+    rrect(ctx,lx,ly,lw,lh,4);ctx.fill();ctx.stroke();
+    ctx.globalAlpha=1;ctx.fillStyle=r.color;ctx.textAlign='center';
+    ctx.font='bold 12px monospace';ctx.fillText(r.days+'日',mx,my+1);
+    ctx.font='9px monospace';
+    ctx.fillStyle=isDark()?'rgba(180,190,220,0.9)':'rgba(50,60,80,0.8)';
+    ctx.fillText(r.label,mx,my+11);
+  });
+}
+
+// ── 固定軸 ───────────────────────────────────────
+function drawCorner(id,isTop){
+  var dark=isDark(),bg=dark?'#1e2535':'#f0f2f5',bd=dark?'rgba(255,255,255,0.2)':'rgba(0,0,0,0.2)';
+  var ctx=setupCv(id,YW,XH);ctx.fillStyle=bg;ctx.fillRect(0,0,YW,XH);
+  ctx.strokeStyle=bd;ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(YW,0);ctx.lineTo(YW,XH);ctx.stroke();
+  if(isTop){ctx.beginPath();ctx.moveTo(0,XH);ctx.lineTo(YW,XH);ctx.stroke();}
+  else{ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(YW,0);ctx.stroke();}
+  ctx.font='10px monospace';ctx.fillStyle=dark?'#9ca3af':'#6b7280';ctx.textAlign='center';ctx.fillText('日齢',YW/2,XH/2+4);
+}
+function drawXAxis(id,by,COLS,isTop){
+  var dark=isDark(),ts=dark?'#9ca3af':'#6b7280',bg=dark?'#1e2535':'#f0f2f5',bd=dark?'rgba(255,255,255,0.2)':'rgba(0,0,0,0.2)';
+  var W=COLS*CW,H=XH;var ctx=setupCv(id,W,H);
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle=bd;ctx.lineWidth=1;
+  if(isTop){ctx.beginPath();ctx.moveTo(0,H);ctx.lineTo(W,H);ctx.stroke();}
+  else{ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(W,0);ctx.stroke();}
+  var pY=null;
+  for(var i=0;i<COLS;i++){
+    var yr=by+Math.floor(i/12),mo=i%12,x=i*CW;
+    ctx.font='10px monospace';ctx.fillStyle=ts;ctx.textAlign='center';ctx.fillText(mo+1,x+CW/2,H-8);
+    if(yr!==pY){ctx.font='500 11px monospace';ctx.fillStyle='#1D9E75';ctx.textAlign='left';ctx.fillText(yr,x+3,isTop?H-26:22);pY=yr;}
+    ctx.strokeStyle=i%12===0?bd:dark?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.07)';
+    ctx.lineWidth=i%12===0?1.5:.5;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();
+  }
+  var t=new Date(),tci=(t.getFullYear()-by)*12+t.getMonth();
+  if(tci>=0&&tci<COLS){
+    var tf=(t.getDate()-1)/dim(t.getFullYear(),t.getMonth()),tx=(tci+tf)*CW;
+    ctx.strokeStyle='#E24B4A';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);ctx.globalAlpha=.75;
+    ctx.beginPath();ctx.moveTo(tx,0);ctx.lineTo(tx,H);ctx.stroke();
+    ctx.setLineDash([]);ctx.globalAlpha=1;ctx.font='9px monospace';ctx.fillStyle='#E24B4A';ctx.textAlign='left';ctx.fillText('今日',tx+3,H-8);
+  }
+}
+function drawY(){
+  var dark=isDark(),ts=dark?'#9ca3af':'#6b7280',bg=dark?'#1e2535':'#f0f2f5',bd=dark?'rgba(255,255,255,0.2)':'rgba(0,0,0,0.2)';
+  var H=ROWS*CH,W=YW;var ctx=setupCv('cvY',W,H);
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=dark?'rgba(59,130,246,0.12)':'rgba(59,130,246,0.10)';ctx.fillRect(0,H-4*CH,W,4*CH);
+  ctx.strokeStyle=bd;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(W,0);ctx.lineTo(W,H);ctx.stroke();
+  ctx.font='9px monospace';ctx.fillStyle=ts;ctx.textAlign='right';
+  for(var r=0;r<ROWS;r++){
+    ctx.fillText((r*30+1)+'-'+((r+1)*30),W-5,(ROWS-r-1)*CH+CH/2+4);
+    ctx.strokeStyle=dark?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.07)';ctx.lineWidth=.5;
+    ctx.beginPath();ctx.moveTo(0,(ROWS-r)*CH);ctx.lineTo(W,(ROWS-r)*CH);ctx.stroke();
+  }
+  var dly=(ROWS-4)*CH;ctx.strokeStyle=dark?'rgba(59,130,246,0.85)':'rgba(37,99,235,0.75)';ctx.lineWidth=1.5;ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(0,dly);ctx.lineTo(W,dly);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(0,dly+3);ctx.lineTo(W,dly+3);ctx.stroke();
+}
+
+// ── ロット描画 ────────────────────────────────────
+function drawLot(ctx,lot,idx,by,W,H,alpha){
+  if(lot.hidden)return;
+  var feed=parseDate(lot.feedDate);if(!feed||!lot.outAge)return;
+  var age=parseInt(lot.outAge),over=(age>MAX_AGE),dispAge=Math.min(age,MAX_AGE),dispEnd=addDays(feed,dispAge);
+  var tAge=clampT((lot.transferAge!==undefined)?lot.transferAge:Math.min(120,dispAge),age);
+  var td=addDays(feed,tAge);
+  var hasMolt=lot.moltAge&&lot.moltAge>0&&lot.moltAge<dispAge;
+  var mS=hasMolt?parseInt(lot.moltAge):null,mE=hasMolt?Math.min(mS+MOLT_DAYS,dispAge):null;
+  var IKC=ikuseiColor(lot.brooder),dark=isDark();
+  ctx.globalAlpha=alpha;
+  // セグメント描画
+  var segs=[];
+  if(hasMolt){
+    var prev=0,cps=[tAge,mS,mE,dispAge].filter(function(v,i,a){return v>0&&v<=dispAge&&a.indexOf(v)===i;}).sort(function(a,b){return a-b;});
+    cps.forEach(function(cp){if(cp<=prev)return;var inM=prev>=mS&&prev<mE,inI=prev<tAge;segs.push({s:prev,e:cp,color:inM?MOLT_COLOR:(inI?IKC:lot.color)});prev=cp;});
+  } else {segs=[{s:0,e:tAge,color:IKC},{s:tAge,e:dispAge,color:lot.color}];}
+  segs.forEach(function(seg){
+    if(seg.s>=seg.e)return;
+    var sp=toXY(addDays(feed,seg.s),seg.s,by),ep=toXY(addDays(feed,Math.min(seg.e,MAX_AGE)),Math.min(seg.e,MAX_AGE),by);
+    ctx.strokeStyle=seg.color;ctx.lineWidth=2.5;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(sp.x,sp.y);ctx.lineTo(ep.x,ep.y);ctx.stroke();
+  });
+  var p1=toXY(feed,0,by),p2=toXY(dispEnd,dispAge,by);
+  if(over){var a0=Math.atan2(p2.y-p1.y,p2.x-p1.x);ctx.strokeStyle=lot.color;ctx.lineWidth=2;ctx.setLineDash([5,4]);ctx.globalAlpha=alpha*0.5;ctx.beginPath();ctx.moveTo(p2.x,p2.y);ctx.lineTo(p2.x+Math.cos(a0)*28,p2.y+Math.sin(a0)*28);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=alpha;}
+  var ang=Math.atan2(p2.y-p1.y,p2.x-p1.x),hs=9;
+  ctx.fillStyle=lot.color;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(p2.x,p2.y);ctx.lineTo(p2.x-hs*Math.cos(ang-0.4),p2.y-hs*Math.sin(ang-0.4));ctx.lineTo(p2.x-hs*Math.cos(ang+0.4),p2.y-hs*Math.sin(ang+0.4));ctx.closePath();ctx.fill();
+  ctx.fillStyle=IKC;ctx.beginPath();ctx.arc(p1.x,p1.y,4,0,Math.PI*2);ctx.fill();
+  // 餌付けラベル（日付＋孵化場・羽数）
+  var fStr=feed.toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'});
+  var sub=[];if(lot.hatchery)sub.push(lot.hatchery);if(lot.birds)sub.push(lot.birds.toLocaleString()+'羽');var subStr=sub.join(' ');
+  var ffs=11,sfs=9,hasSub=subStr.length>0;
+  ctx.font='500 '+ffs+'px monospace';var fw1=ctx.measureText(fStr).width;ctx.font=sfs+'px monospace';var fw2=hasSub?ctx.measureText(subStr).width:0;
+  var flw=Math.max(fw1,fw2)+10,flh=hasSub?(ffs+sfs+10):(ffs+8);
+  var flx=p1.x+6,fly=p1.y+6;if(flx+flw>W)flx=p1.x-flw-4;if(fly+flh>H)fly=p1.y-flh-4;
+  ctx.fillStyle=dark?'rgba(20,25,40,0.88)':'rgba(255,255,255,0.92)';ctx.strokeStyle='#E24B4A';ctx.lineWidth=1.2;ctx.setLineDash([]);
+  rrect(ctx,flx,fly,flw,flh,3);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#E24B4A';ctx.textAlign='left';ctx.font='500 '+ffs+'px monospace';ctx.fillText(fStr,flx+5,fly+ffs);
+  if(hasSub){ctx.font=sfs+'px monospace';ctx.fillStyle=dark?'rgba(180,200,230,0.75)':'rgba(80,90,110,0.75)';ctx.fillText(subStr,flx+5,fly+ffs+sfs+1);}
+  // ロット名
+  var midAge=Math.round(dispAge/2),pm=toXY(addDays(feed,midAge),midAge,by);
+  var midInM=hasMolt&&midAge>=mS&&midAge<mE,midInI=midAge<tAge;
+  var lc=midInM?MOLT_COLOR:(midInI?IKC:lot.color);
+  ctx.font='500 11px monospace';ctx.fillStyle=lc;ctx.textAlign='center';
+  if(lot.house){ctx.fillText(lot.name||('L'+(idx+1)),pm.x,pm.y-16);ctx.font='10px monospace';ctx.fillStyle=dark?'rgba(200,210,230,0.85)':'rgba(60,70,90,0.75)';ctx.fillText(lot.house,pm.x,pm.y-5);}
+  else{ctx.fillText(lot.name||('L'+(idx+1)),pm.x,pm.y-9);}
+  // 強換マーカー
+  if(hasMolt){
+    var bgF=dark?'#1a1f2e':'#fff',pmS=toXY(addDays(feed,mS),mS,by),pmE=toXY(addDays(feed,mE),mE,by);
+    var isDM=dragState&&dragState.type==='molt'&&dragState.id===lot.id;
+    diamond(ctx,pmS.x,pmS.y,6,MOLT_COLOR,bgF,isDM?2.5:1.5);
+    if(isDM){ctx.strokeStyle=MOLT_COLOR;ctx.lineWidth=1.5;ctx.globalAlpha=alpha*0.3;ctx.beginPath();ctx.arc(pmS.x,pmS.y,11,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=alpha;}
+    moltLabel(ctx,pmS.x,pmS.y,mS+'日齢',addDays(feed,mS).toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'}),MOLT_COLOR,W,H,dark);
+    diamond(ctx,pmE.x,pmE.y,6,MOLT_COLOR,bgF,1.5);
+  }
+  // 移動日マーカー
+  var pt=toXY(td,tAge,by),sq=6,isDT=dragState&&dragState.type==='transfer'&&dragState.id===lot.id,atLimit=(tAge>=MAX_TRANSFER);
+  ctx.fillStyle=dark?'#1a1f2e':'#fff';ctx.strokeStyle=atLimit?'#E24B4A':lot.color;ctx.lineWidth=isDT?3:2.5;ctx.setLineDash([]);
+  ctx.beginPath();ctx.rect(pt.x-sq,pt.y-sq,sq*2,sq*2);ctx.fill();ctx.stroke();
+  if(isDT){ctx.strokeStyle=atLimit?'#E24B4A':lot.color;ctx.lineWidth=1.5;ctx.globalAlpha=alpha*0.35;ctx.beginPath();ctx.arc(pt.x,pt.y,11,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=alpha;}
+  var ds=td.toLocaleDateString('ja-JP',{year:'2-digit',month:'numeric',day:'numeric'}),as=tAge+'日齢'+(atLimit?' (上限)':''),fs=12;
+  ctx.font='500 '+fs+'px monospace';var lw=Math.max(ctx.measureText(ds).width,ctx.measureText(as).width)+12,lh=fs*2+12;
+  var lx=pt.x-lw/2,ly=pt.y-lh-10;if(ly<0)ly=pt.y+sq+6;if(lx+lw>W)lx=W-lw-2;if(lx<0)lx=2;
+  ctx.fillStyle=dark?'rgba(20,25,40,0.92)':'rgba(255,255,255,0.95)';ctx.strokeStyle='#E24B4A';ctx.lineWidth=1.5;ctx.setLineDash([]);
+  rrect(ctx,lx,ly,lw,lh,3);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#E24B4A';ctx.textAlign='left';ctx.font='500 '+fs+'px monospace';ctx.fillText(as,lx+6,ly+fs+1);ctx.font='500 '+(fs-1)+'px monospace';ctx.fillText(ds,lx+6,ly+fs*2+5);
+  // アウトラベル
+  var l1=over?(age+'日齢 ⚠超過'):age+'日齢',l2=addDays(feed,age).toLocaleDateString('ja-JP',{year:'2-digit',month:'numeric',day:'numeric'}),fs2=13;
+  ctx.font='500 '+fs2+'px monospace';var bw=Math.max(ctx.measureText(l1).width,ctx.measureText(l2).width)+14,bh=fs2*2+14;
+  var bx=p2.x+Math.cos(ang)*8,by2=p2.y+Math.sin(ang)*8;if(bx+bw>W)bx=p2.x-bw-4;if(by2+bh>H)by2=p2.y-bh-4;if(by2<0)by2=p2.y+4;
+  ctx.fillStyle=dark?'rgba(20,25,40,0.92)':'rgba(255,255,255,0.95)';ctx.strokeStyle='#E24B4A';ctx.lineWidth=1.5;ctx.setLineDash([]);
+  rrect(ctx,bx,by2,bw,bh,4);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#E24B4A';ctx.textAlign='left';ctx.font='500 '+fs2+'px monospace';ctx.fillText(l1,bx+7,by2+fs2+2);ctx.font='500 '+(fs2-1)+'px monospace';ctx.fillText(l2,bx+7,by2+fs2*2+6);
+  if(dragState&&dragState.type==='arrow'&&dragState.id===lot.id){ctx.strokeStyle=lot.color;ctx.lineWidth=2;ctx.globalAlpha=alpha*0.4;ctx.beginPath();ctx.arc(p2.x,p2.y,11,0,Math.PI*2);ctx.stroke();}
+  ctx.globalAlpha=1;
+}
+
+// ── メイン描画 ────────────────────────────────────
+function drawMain(by,COLS){
+  var dark=isDark(),gc=dark?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.07)',gs=dark?'rgba(255,255,255,0.18)':'rgba(0,0,0,0.18)';
+  var W=COLS*CW,H=ROWS*CH;
+  var ctx=setupCv('cvMain',W,H);
+  ctx.fillStyle=dark?'#1a1f2e':'#f8f9fb';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=dark?'rgba(59,130,246,0.10)':'rgba(59,130,246,0.08)';ctx.fillRect(0,H-4*CH,W,4*CH);
+  for(var r=4;r<ROWS;r++){if(r%2===0){ctx.fillStyle=dark?'rgba(255,255,255,0.02)':'rgba(0,0,0,0.015)';ctx.fillRect(0,(ROWS-r-1)*CH,W,CH);}}
+  for(var i=0;i<=COLS;i++){ctx.strokeStyle=i%12===0?gs:gc;ctx.lineWidth=i%12===0?1.5:.5;ctx.beginPath();ctx.moveTo(i*CW,0);ctx.lineTo(i*CW,H);ctx.stroke();}
+  for(var r=0;r<=ROWS;r++){ctx.strokeStyle=r===0?gs:gc;ctx.lineWidth=r===0?1.5:.5;ctx.beginPath();ctx.moveTo(0,r*CH);ctx.lineTo(W,r*CH);ctx.stroke();}
+  var dly=(ROWS-4)*CH;ctx.strokeStyle=dark?'rgba(59,130,246,0.8)':'rgba(37,99,235,0.70)';ctx.lineWidth=1.5;ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(0,dly);ctx.lineTo(W,dly);ctx.stroke();ctx.beginPath();ctx.moveTo(0,dly+3);ctx.lineTo(W,dly+3);ctx.stroke();
+  var t2=new Date(),tci=(t2.getFullYear()-by)*12+t2.getMonth();
+  if(tci>=0&&tci<COLS){var tf=(t2.getDate()-1)/dim(t2.getFullYear(),t2.getMonth()),tx=(tci+tf)*CW;ctx.strokeStyle='#E24B4A';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);ctx.globalAlpha=.75;ctx.beginPath();ctx.moveTo(tx,0);ctx.lineTo(tx,H);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;}
+  var la=showRotation?0.5:1.0;
+  lots.forEach(function(lot,idx){drawLot(ctx,lot,idx,by,W,H,la);});
+  if(showRotation)drawRotationLines(ctx,by,W,H);
+}
+
+// ── 再描画 ────────────────────────────────────────
+var _by=null,_COLS=null,_scrolled=false;
+function redraw(){
+  _by=getBaseYear();_COLS=getNeededCols();
+  drawCorner('cvCornerTL',true);drawCorner('cvCornerBL',false);
+  drawXAxis('cvXTop',_by,_COLS,true);drawXAxis('cvXBot',_by,_COLS,false);
+  drawY();drawMain(_by,_COLS);
+  if(!_scrolled){var sc=document.getElementById('chart-scroll'),t=new Date();var tci=(t.getFullYear()-_by)*12+t.getMonth();sc.scrollLeft=Math.max(0,tci*CW-100);_scrolled=true;}
+}
+
+// ── スクロール同期 ────────────────────────────────
+var scroll=document.getElementById('chart-scroll'),ywrap=document.getElementById('yaxis-wrap'),xtop=document.getElementById('xaxis-top'),xbot=document.getElementById('xaxis-bot');
+scroll.addEventListener('scroll',function(){
+  xtop.scrollLeft=xbot.scrollLeft=scroll.scrollLeft;ywrap.scrollTop=scroll.scrollTop;
+  if(scroll.scrollLeft+scroll.clientWidth>scroll.scrollWidth-CW*6){VIEW_COLS+=24;redraw();}
+});
+
+// ── ヒットテスト & ドラッグ ───────────────────────
+var cvMain=document.getElementById('cvMain'),tt=document.getElementById('tooltip');
+function getCanvasXY(e){var r=cvMain.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+function hitTest(mx,my){
+  for(var i=0;i<lots.length;i++){var lot=lots[i];if(lot.hidden)continue;var feed=parseDate(lot.feedDate);if(!feed||!lot.outAge)continue;var dA=Math.min(parseInt(lot.outAge),MAX_AGE);if(!lot.moltAge||lot.moltAge<=0||lot.moltAge>=dA)continue;var pm=toXY(addDays(feed,parseInt(lot.moltAge)),parseInt(lot.moltAge),_by);if(Math.abs(mx-pm.x)<=9&&Math.abs(my-pm.y)<=9)return{type:'molt',lot:lot};}
+  for(var i=0;i<lots.length;i++){var lot=lots[i];if(lot.hidden)continue;var feed=parseDate(lot.feedDate);if(!feed||!lot.outAge)continue;var age=parseInt(lot.outAge),dA=Math.min(age,MAX_AGE);var tA=clampT((lot.transferAge!==undefined)?lot.transferAge:Math.min(120,dA),age);var pt=toXY(addDays(feed,tA),tA,_by);if(Math.abs(mx-pt.x)<=9&&Math.abs(my-pt.y)<=9)return{type:'transfer',lot:lot};}
+  for(var i=0;i<lots.length;i++){var lot=lots[i];if(lot.hidden)continue;var feed=parseDate(lot.feedDate);if(!feed||!lot.outAge)continue;var p=toXY(addDays(feed,Math.min(parseInt(lot.outAge),MAX_AGE)),Math.min(parseInt(lot.outAge),MAX_AGE),_by);if(Math.sqrt((mx-p.x)*(mx-p.x)+(my-p.y)*(my-p.y))<14)return{type:'arrow',lot:lot};}
+  return null;
+}
+cvMain.addEventListener('mousedown',function(e){var pos=getCanvasXY(e),hit=hitTest(pos.x,pos.y);if(hit){dragState={type:hit.type,id:hit.lot.id};document.body.style.cursor='grabbing';e.preventDefault();}});
+cvMain.addEventListener('mousemove',function(e){cvMain.style.cursor=hitTest(getCanvasXY(e).x,getCanvasXY(e).y)?'grab':'default';});
+cvMain.addEventListener('mousemove',function(e){
+  if(dragState){tt.style.display='none';return;}
+  var pos=getCanvasXY(e),mx=pos.x,my=pos.y,best=null,bestD=16;
+  lots.forEach(function(lot){if(lot.hidden)return;var f=parseDate(lot.feedDate);if(!f||!lot.outAge)return;var dA=Math.min(parseInt(lot.outAge),MAX_AGE),steps=Math.min(dA,500);for(var s=0;s<=steps;s++){var d3=Math.round(s/steps*dA),p=toXY(addDays(f,d3),d3,_by);var dist=Math.sqrt((mx-p.x)*(mx-p.x)+(my-p.y)*(my-p.y));if(dist<bestD){bestD=dist;best={lot:lot,ageDays:d3,date:addDays(f,d3)};}}});
+  if(best){
+    document.getElementById('tt-name').textContent=best.lot.name||('ロット'+best.lot.id);
+    var hr=best.lot.house?'<div class="tt-r"><span>成鶏舎</span><span><b>'+best.lot.house+'</b></span></div>':'';
+    document.getElementById('tt-body').innerHTML=hr+'<div class="tt-r"><span>日付</span><span>'+best.date.toLocaleDateString('ja-JP')+'</span></div><div class="tt-r"><span>日齢</span><span><b>'+best.ageDays+' 日</b></span></div>';
+    var tipX=mx+scroll.scrollLeft+6,tipY=my+scroll.scrollTop-6;
+    if(mx+170>cvMain.offsetWidth)tipX=mx+scroll.scrollLeft-170;
+    tt.style.left=tipX+'px';tt.style.top=tipY+'px';tt.style.display='block';
+  } else tt.style.display='none';
+});
+cvMain.addEventListener('mouseleave',function(){tt.style.display='none';});
+document.addEventListener('mousemove',function(e){
+  if(!dragState)return;
+  var pos=getCanvasXY(e),lot=null;
+  for(var i=0;i<lots.length;i++){if(lots[i].id===dragState.id){lot=lots[i];break;}}
+  if(!lot)return;
+  var f2=parseDate(lot.feedDate),d2=posToDate(pos.x,_by);
+  if(dragState.type==='arrow'){lot.outAge=posToAge(pos.y);}
+  else if(dragState.type==='transfer'&&f2&&d2){lot.transferAge=clampT(Math.round((d2.getTime()-f2.getTime())/86400000),parseInt(lot.outAge));}
+  else if(dragState.type==='molt'&&f2&&d2){var days=Math.round((d2.getTime()-f2.getTime())/86400000);lot.moltAge=Math.max(1,Math.min(Math.min(parseInt(lot.outAge),MAX_AGE)-1,days));}
+  redraw();renderLotList();
+});
+document.addEventListener('mouseup',function(){
+  if(!dragState)return;
+  var lot=null;for(var i=0;i<lots.length;i++){if(lots[i].id===dragState.id){lot=lots[i];break;}}
+  if(lot)pushUndo();
+  if(lot){
+    var f2=parseDate(lot.feedDate);
+    if(dragState.type==='arrow'&&f2)
+      logChange(lot.name||'ロット'+lot.id,'アウト日齢',fmtAgeDate(f2,lot.outAge));
+    else if(dragState.type==='transfer'&&f2)
+      logChange(lot.name||'ロット'+lot.id,'移動日',fmtAgeDate(f2,lot.transferAge));
+    else if(dragState.type==='molt'&&f2&&lot.moltAge)
+      logChange(lot.name||'ロット'+lot.id,'強換開始日齢',fmtAgeDate(f2,lot.moltAge));
+  }
+  dragState=null;document.body.style.cursor='';redraw();
+});
+document.getElementById('f-age').addEventListener('input',function(){document.getElementById('age-warn').style.display=(parseInt(this.value)>MAX_AGE)?'block':'none';});
+
+// ── ロット一覧 ────────────────────────────────────
+function startEdit(id){if(editingId===id){cancelEdit();return;}editingId=id;renderLotList();setTimeout(function(){var el=document.querySelector('.lot-item.editing');if(el)el.scrollIntoView({behavior:'smooth',block:'nearest'});},50);}
+function cancelEdit(){editingId=null;renderLotList();}
+function saveEdit(id){
+  var lot=null;for(var i=0;i<lots.length;i++){if(lots[i].id===id){lot=lots[i];break;}}if(!lot)return;
+  var outAge=parseInt(document.getElementById('e-age-'+id).value),feedDate=document.getElementById('e-date-'+id).value;
+  if(!feedDate||!outAge||outAge<1){alert('餌付け日とアウト日齢を入力してください');return;}
+  var brooderEl=document.querySelector('input[name="e-brooder-'+id+'"]:checked');
+  lot.name=document.getElementById('e-name-'+id).value.trim()||lot.name;
+  lot.house=document.getElementById('e-house-'+id).value.trim();
+  lot.feedDate=feedDate;lot.outAge=outAge;
+  lot.brooder=brooderEl?brooderEl.value:'';
+  lot.birds=parseInt(document.getElementById('e-birds-'+id).value)||0;
+  lot.hatchery=document.getElementById('e-hatchery-'+id).value.trim();
+  var moltChk=document.getElementById('e-molt-chk-'+id).checked;
+  lot.moltAge=moltChk?parseInt(document.getElementById('e-molt-age-'+id).value)||null:null;
+  lot.transferAge=clampT(lot.transferAge||Math.min(120,Math.min(outAge,MAX_AGE)),outAge);
+  pushUndo();addLog('<span class="log-lot">'+(lot.name||'ロット'+lot.id)+'</span>の情報を<span class="log-key">編集保存</span>しました');
+  editingId=null;_scrolled=true;redraw();renderLotList();updateHouseList();
+}
+function toggleEditMolt(id){var w=document.getElementById('e-molt-wrap-'+id);if(w)w.style.display=document.getElementById('e-molt-chk-'+id).checked?'flex':'none';}
+function toggleHidden(id){var lot=null;for(var i=0;i<lots.length;i++){if(lots[i].id===id){lot=lots[i];break;}}if(!lot)return;pushUndo();lot.hidden=!lot.hidden;redraw();renderLotList();}
+function removeLot(id){
+  pushUndo();var name=getLotName(id);
+  lots=lots.filter(function(l){return l.id!==id;});
+  if(editingId===id)editingId=null;
+  addLog('<span class="log-lot">'+name+'</span>を<span class="log-key">削除</span>しました');
+  redraw();renderLotList();updateHouseList();
+}
+
+function renderLotList(){
+  var el=document.getElementById('lot-list');
+  if(!lots.length){el.innerHTML='<div style="font-size:11px;color:#6b7280;padding:4px 0">まだロットがありません</div>';return;}
+  el.innerHTML=lots.map(function(l){
+    var feed4=parseDate(l.feedDate),age=parseInt(l.outAge);
+    var overMark=age>MAX_AGE?'<span style="color:#E24B4A;font-size:10px"> ⚠</span>':'';
+    var feedStr=feed4?feed4.toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'}):'';
+    var metaParts=[feedStr];if(l.house)metaParts.push(l.house);
+    var IKC=ikuseiColor(l.brooder);
+    var brooderDot=l.brooder?'<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+IKC+';vertical-align:middle;margin-right:3px"></span>':'';
+    var sub=[];
+    if(l.brooder)sub.push(brooderDot+l.brooder);
+    if(l.birds)sub.push(l.birds.toLocaleString()+'羽');
+    if(l.hatchery)sub.push(l.hatchery);
+    if(l.moltAge)sub.push('<span style="color:#7F77DD">◆強換'+l.moltAge+'〜'+(l.moltAge+MOLT_DAYS)+'日齢</span>');
+    var isEditing=(editingId===l.id);
+    var hideCls='btn-hide'+(l.hidden?' is-hidden':'');
+    var editForm=isEditing?
+      '<div class="edit-form">'+
+        '<div class="form-row"><label>ロット名</label><input id="e-name-'+l.id+'" value="'+(l.name||'')+'" maxlength="16"></div>'+
+        '<div class="form-row"><label>成鶏舎</label><input id="e-house-'+l.id+'" value="'+(l.house||'')+'" maxlength="20" list="house-list" autocomplete="off"></div>'+
+        '<div class="form-row"><label>餌付け日</label><input type="date" id="e-date-'+l.id+'" value="'+l.feedDate+'"></div>'+
+        '<div class="form-row"><label>アウト日齢</label><input type="number" id="e-age-'+l.id+'" value="'+l.outAge+'" min="1" max="999"></div>'+
+        '<div class="form-row"><label>育雛舎</label><div class="radio-row">'+
+          '<label><input type="radio" name="e-brooder-'+l.id+'" value="1号"'+(l.brooder==='1号'?' checked':'')+'>1号</label>'+
+          '<label><input type="radio" name="e-brooder-'+l.id+'" value="2号"'+(l.brooder==='2号'?' checked':'')+'>2号</label>'+
+          '<label><input type="radio" name="e-brooder-'+l.id+'" value=""'+(!l.brooder?' checked':'')+'>未設定</label>'+
+        '</div></div>'+
+        '<div class="form-row"><label>羽数</label><input type="number" id="e-birds-'+l.id+'" value="'+(l.birds||'')+'" min="0"></div>'+
+        '<div class="form-row"><label>孵化場</label><input id="e-hatchery-'+l.id+'" value="'+(l.hatchery||'')+'" maxlength="30"></div>'+
+        '<div class="molt-row">'+
+          '<input type="checkbox" id="e-molt-chk-'+l.id+'"'+(l.moltAge?' checked':'')+' onchange="toggleEditMolt('+l.id+')">'+
+          '<label for="e-molt-chk-'+l.id+'" style="font-size:11px;cursor:pointer">強換あり</label>'+
+          '<div class="molt-age-wrap" id="e-molt-wrap-'+l.id+'" style="display:'+(l.moltAge?'flex':'none')+'">'+
+            '<input type="number" id="e-molt-age-'+l.id+'" value="'+(l.moltAge||'')+'" min="1" max="999" placeholder="開始日齢">'+
+            '<span>日齢〜</span>'+
+          '</div>'+
+        '</div>'+
+        '<button class="btn-form-save" onclick="saveEdit('+l.id+')">保存</button>'+
+        '<button class="btn-cancel" onclick="cancelEdit()">キャンセル</button>'+
+        '<button class="btn-del-lot" onclick="if(confirm(\'このロットを削除しますか？\')){cancelEdit();removeLot('+l.id+')}">🗑 ロットを削除</button>'+
+      '</div>':'';
+    return '<div class="lot-item'+(isEditing?' editing':'')+'" ondblclick="startEdit('+l.id+')" style="'+(l.hidden?'opacity:0.45;':'')+'">'+
+      '<div class="lot-item-top">'+
+        '<span class="lot-dot" style="background:'+l.color+'"></span>'+
+        '<span class="lot-name">'+(l.name||'ロット'+l.id)+overMark+'</span>'+
+        '<span class="lot-meta">'+metaParts.join(' · ')+'</span>'+
+        '<button class="'+hideCls+'" onclick="event.stopPropagation();toggleHidden('+l.id+')">'+(l.hidden?'表示':'非表示')+'</button>'+
+      '</div>'+
+      (sub.length&&!isEditing?'<div class="lot-sub">'+sub.join(' · ')+'</div>':'')+
+      editForm+'</div>';
+  }).join('');
+}
+
+// ── CSV ──────────────────────────────────────────
+function handleDrop(e){e.preventDefault();document.getElementById('drop-zone').classList.remove('drag-over');if(e.dataTransfer.files[0])readCSV(e.dataTransfer.files[0]);}
+function handleFileInput(el){if(el.files[0])readCSV(el.files[0]);el.value='';}
+function readCSV(file){var r=new FileReader();r.onload=function(e){parseCSV(e.target.result);};r.readAsText(file,'UTF-8');}
+function splitCSV(line){var r=[],c='',q=false;for(var i=0;i<line.length;i++){var ch=line[i];if(ch==='"'){q=!q;}else if(ch===','&&!q){r.push(c);c='';}else{c+=ch;}}r.push(c);return r;}
+function parseCSV(text){
+  text=text.replace(/^\uFEFF/,'');
+  var lines=text.split(/\r?\n/).filter(function(l){return l.trim()!=='';});
+  var added=0,errors=[];
+  lines.forEach(function(line,i){
+    var cols=splitCSV(line);if(cols.length<3)return;if(i===0&&isNaN(parseInt(cols[2])))return;
+    var name=(cols[0]||'').trim(),dateStr=(cols[1]||'').trim().replace(/\//g,'-');
+    var dm=dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);if(dm)dateStr=dm[1]+'-'+dm[2].padStart(2,'0')+'-'+dm[3].padStart(2,'0');
+    var outAge=parseInt((cols[2]||'').trim()),house=(cols[3]||'').trim()||'',brooder=(cols[4]||'').trim()||'',birds=parseInt((cols[5]||'').trim())||0,hatchery=(cols[6]||'').trim()||'',moltAge=parseInt((cols[7]||'').trim())||0;
+    var feed=parseDate(dateStr);if(!feed||isNaN(outAge)||outAge<1){errors.push((i+1)+'行目: 無効');return;}
+    lots.push({id:nid++,hidden:false,name:name||('ロット'+nid),feedDate:dateStr,outAge:outAge,color:COLORS[lots.length%COLORS.length],transferAge:Math.min(120,Math.min(outAge,MAX_AGE)),house:house,brooder:brooder,birds:birds,hatchery:hatchery,moltAge:moltAge||null});
+    added++;
+  });
+  pushUndo();_scrolled=true;redraw();renderLotList();updateHouseList();
+  addLog(added+'件のロットを<span class="log-key">CSV読み込み</span>しました');
+  var msg=added+'件のロットを読み込みました。';if(errors.length)msg+='\n\nスキップ:\n'+errors.join('\n');alert(msg);
+}
+function exportCSV(){
+  if(!lots.length){alert('ロットがありません');return;}
+  var header='ロット名,餌付け日,アウト日齢,成鶏舎,育雛舎,羽数,孵化場,強換開始日齢';
+  var rows=lots.map(function(l){return[csvEsc(l.name||''),l.feedDate||'',l.outAge||'',csvEsc(l.house||''),csvEsc(l.brooder||''),l.birds||'',csvEsc(l.hatchery||''),l.moltAge||''].join(',');});
+  var csv='\uFEFF'+header+'\n'+rows.join('\n');
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  var d=new Date(),ds=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+  a.href=url;a.download='szk_lots_'+ds+'.csv';document.body.appendChild(a);a.click();
+  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},100);
+}
+function csvEsc(s){if(/[,"\n]/.test(s))return'"'+s.replace(/"/g,'""')+'"';return s;}
+
+// ── ロット追加 ────────────────────────────────────
+function addLot(){
+  var name=document.getElementById('f-name').value.trim(),house=document.getElementById('f-house').value.trim();
+  var feedDate=document.getElementById('f-date').value,outAge=parseInt(document.getElementById('f-age').value);
+  if(!feedDate||!outAge||outAge<1){alert('餌付け日とアウト日齢を入力してください');return;}
+  var brooderEl=document.querySelector('input[name="brooder"]:checked'),brooder=brooderEl?brooderEl.value:'';
+  var birds=parseInt(document.getElementById('f-birds').value)||0,hatchery=document.getElementById('f-hatchery').value.trim();
+  var moltChk=document.getElementById('f-molt-chk').checked,moltAge=moltChk?parseInt(document.getElementById('f-molt-age').value)||null:null;
+  pushUndo();lots.push({id:nid++,hidden:false,name:name,house:house,feedDate:feedDate,outAge:outAge,color:COLORS[lots.length%COLORS.length],transferAge:Math.min(120,Math.min(outAge,MAX_AGE)),brooder:brooder,birds:birds,hatchery:hatchery,moltAge:moltAge});
+  var newLot=lots[lots.length-1];
+  addLog('<span class="log-lot">'+(newLot.name||'ロット'+newLot.id)+'</span>を<span class="log-key">追加</span>しました');
+  document.getElementById('f-name').value='';document.getElementById('f-house').value='';document.getElementById('f-age').value='';
+  document.getElementById('f-birds').value='';document.getElementById('f-hatchery').value='';
+  document.getElementById('f-molt-chk').checked=false;document.getElementById('f-molt-age').value='';
+  document.getElementById('molt-age-wrap').style.display='none';document.getElementById('age-warn').style.display='none';
+  _scrolled=true;redraw();renderLotList();updateHouseList();
+}
+
+// ── レイアウト ────────────────────────────────────
+function initSizes(){
+  var outer=document.getElementById('chart-outer');
+  var ow=outer.clientWidth,oh=outer.clientHeight,mainW=ow-YW,mainH=oh-XH*2;
+  document.getElementById('cvCornerTL').style.cssText='width:'+YW+'px;height:'+XH+'px;top:0;left:0';
+  document.getElementById('cvCornerBL').style.cssText='width:'+YW+'px;height:'+XH+'px;bottom:0;left:0';
+  xtop.style.cssText='width:'+mainW+'px;height:'+XH+'px;left:'+YW+'px;top:0;overflow:hidden;position:absolute;z-index:10;pointer-events:none';
+  xbot.style.cssText='width:'+mainW+'px;height:'+XH+'px;left:'+YW+'px;bottom:0;overflow:hidden;position:absolute;z-index:10;pointer-events:none';
+  document.getElementById('chart-mid').style.cssText='position:absolute;top:'+XH+'px;bottom:'+XH+'px;left:0;right:0;display:flex;overflow:hidden';
+  ywrap.style.cssText='width:'+YW+'px;height:'+mainH+'px;overflow:hidden;flex-shrink:0;position:relative;z-index:10';
+  scroll.style.cssText='flex:1;width:'+mainW+'px;height:'+mainH+'px;overflow:auto;position:relative';
+  redraw();
+}
+
+// ── PDF出力 ───────────────────────────────────────
+function exportPDF(){
+  var today=new Date();
+  var inputYear=prompt('PDF出力の開始年を入力（3年分出力）',today.getFullYear());
+  if(inputYear===null)return;
+  var pdfBase=parseInt(inputYear);
+  if(isNaN(pdfBase)||pdfBase<1900||pdfBase>2100){alert('有効な年を入力してください');return;}
+  var pdfRotation=confirm('舎繰り線を表示しますか？');
+  var PDF_COLS=36,A4W=1122,A4H=794,SCALE=2,PW=A4W*SCALE,PH=A4H*SCALE;
+  var ML=20*SCALE,MR=16*SCALE,MT=28*SCALE,sYW=60*SCALE,sXH=32*SCALE;
+  var sCW=Math.floor((PW-ML-MR-sYW)/PDF_COLS),sCH=Math.floor((PH-MT-20*SCALE-sXH*2)/ROWS);
+  var cv=document.createElement('canvas');cv.width=PW;cv.height=PH;
+  var ctx=cv.getContext('2d');
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,PW,PH);
+  ctx.font='bold '+(14*SCALE)+'px sans-serif';ctx.fillStyle='#111';ctx.textAlign='left';ctx.fillText('SZKローテ',ML,MT-8*SCALE);
+  ctx.font=(9*SCALE)+'px monospace';ctx.fillStyle='#666';ctx.textAlign='right';ctx.fillText(pdfBase+'年〜'+(pdfBase+2)+'年  出力: '+today.toLocaleDateString('ja-JP'),PW-MR,MT-8*SCALE);
+  var OX=ML,OY=MT,gc='rgba(0,0,0,0.07)',gs='rgba(0,0,0,0.2)';
+  ctx.fillStyle='rgba(59,130,246,0.07)';ctx.fillRect(OX+sYW,OY+sXH+(ROWS-4)*sCH,PDF_COLS*sCW,4*sCH);
+  for(var r=4;r<ROWS;r++){if(r%2===0){ctx.fillStyle='rgba(0,0,0,0.015)';ctx.fillRect(OX+sYW,OY+sXH+(ROWS-r-1)*sCH,PDF_COLS*sCW,sCH);}}
+  for(var i=0;i<=PDF_COLS;i++){var x=OX+sYW+i*sCW;ctx.strokeStyle=i%12===0?gs:gc;ctx.lineWidth=i%12===0?1.5:.5;ctx.beginPath();ctx.moveTo(x,OY+sXH);ctx.lineTo(x,OY+sXH+ROWS*sCH);ctx.stroke();}
+  for(var r=0;r<=ROWS;r++){var y=OY+sXH+r*sCH;ctx.strokeStyle=r===0?gs:gc;ctx.lineWidth=r===0?1.5:.5;ctx.beginPath();ctx.moveTo(OX+sYW,y);ctx.lineTo(OX+sYW+PDF_COLS*sCW,y);ctx.stroke();}
+  var dly=OY+sXH+(ROWS-4)*sCH;ctx.strokeStyle='rgba(37,99,235,0.65)';ctx.lineWidth=1.5;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(OX+sYW,dly);ctx.lineTo(OX+sYW+PDF_COLS*sCW,dly);ctx.stroke();ctx.beginPath();ctx.moveTo(OX+sYW,dly+3);ctx.lineTo(OX+sYW+PDF_COLS*sCW,dly+3);ctx.stroke();
+  ctx.font=(7*SCALE)+'px monospace';ctx.fillStyle='#555';ctx.textAlign='right';
+  for(var r=0;r<ROWS;r++){ctx.fillText((r*30+1)+'-'+((r+1)*30),OX+sYW-3*SCALE,OY+sXH+(ROWS-r-1)*sCH+sCH/2+3*SCALE);}
+  function xband(topY){var pY=null;for(var i=0;i<PDF_COLS;i++){var yr=pdfBase+Math.floor(i/12),mo=i%12,x=OX+sYW+i*sCW;ctx.font=(7*SCALE)+'px monospace';ctx.fillStyle='#555';ctx.textAlign='center';ctx.fillText(mo+1,x+sCW/2,topY+sXH-5*SCALE);if(yr!==pY){ctx.font='500 '+(8*SCALE)+'px monospace';ctx.fillStyle='#1D9E75';ctx.textAlign='left';ctx.fillText(yr,x+2*SCALE,topY+sXH-18*SCALE);pY=yr;}ctx.strokeStyle=i%12===0?gs:gc;ctx.lineWidth=i%12===0?1.5:.5;ctx.beginPath();ctx.moveTo(x,topY);ctx.lineTo(x,topY+sXH);ctx.stroke();}ctx.strokeStyle=gs;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(OX+sYW,topY+sXH);ctx.lineTo(OX+sYW+PDF_COLS*sCW,topY+sXH);ctx.stroke();}
+  xband(OY);xband(OY+sXH+ROWS*sCH);
+  function toP(date,age){var col=(date.getFullYear()-pdfBase)*12+date.getMonth();var frac=(date.getDate()-1)/new Date(date.getFullYear(),date.getMonth()+1,0).getDate();return{x:OX+sYW+(col+frac)*sCW,y:OY+sXH+(ROWS-Math.min(age,MAX_AGE)/30)*sCH};}
+  function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();}
+  function diam2(px,py,s){ctx.fillStyle=MOLT_COLOR;ctx.strokeStyle='#fff';ctx.lineWidth=SCALE;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(px,py-s);ctx.lineTo(px+s,py);ctx.lineTo(px,py+s);ctx.lineTo(px-s,py);ctx.closePath();ctx.fill();ctx.stroke();}
+  function pdfML(px,py,l1,l2,mxX,mxY){var fs=7*SCALE;ctx.font='500 '+fs+'px monospace';var lw=Math.max(ctx.measureText(l1).width,ctx.measureText(l2).width)+8*SCALE,lh=fs*2+7*SCALE;var lx=px+6*SCALE,ly=py+5*SCALE;if(lx+lw>mxX)lx=px-lw-4*SCALE;if(ly+lh>mxY)ly=py-lh-3*SCALE;if(lx<OX+sYW)lx=OX+sYW+2*SCALE;ctx.fillStyle='rgba(255,255,255,0.93)';ctx.strokeStyle=MOLT_COLOR;ctx.lineWidth=SCALE;rr(lx,ly,lw,lh,2*SCALE);ctx.fill();ctx.stroke();ctx.fillStyle=MOLT_COLOR;ctx.textAlign='left';ctx.font='500 '+fs+'px monospace';ctx.fillText(l1,lx+4*SCALE,ly+fs);ctx.font='500 '+(fs-SCALE)+'px monospace';ctx.fillText(l2,lx+4*SCALE,ly+fs*2+2*SCALE);}
+  var mxX=OX+sYW+PDF_COLS*sCW,mxY=OY+sXH+ROWS*sCH;
+  ctx.save();ctx.beginPath();ctx.rect(OX+sYW,OY,PDF_COLS*sCW+MR,PH);ctx.clip();
+  lots.forEach(function(lot,idx){
+    if(lot.hidden)return;
+    var feed=parseDate(lot.feedDate);if(!feed||!lot.outAge)return;
+    var age=parseInt(lot.outAge),over=(age>MAX_AGE),dispAge=Math.min(age,MAX_AGE);
+    var tAge=clampT((lot.transferAge!==undefined)?lot.transferAge:Math.min(120,dispAge),age);
+    var td=addDays(feed,tAge);
+    var hasMolt=lot.moltAge&&lot.moltAge>0&&lot.moltAge<dispAge;
+    var mS2=hasMolt?parseInt(lot.moltAge):null,mE2=hasMolt?Math.min(mS2+MOLT_DAYS,dispAge):null;
+    var IKC=ikuseiColor(lot.brooder);
+    var segs=[];
+    if(hasMolt){var prev=0,cps=[tAge,mS2,mE2,dispAge].filter(function(v,i,a){return v>0&&v<=dispAge&&a.indexOf(v)===i;}).sort(function(a,b){return a-b;});cps.forEach(function(cp){if(cp<=prev)return;var inM=prev>=mS2&&prev<mE2,inI=prev<tAge;segs.push({s:prev,e:cp,color:inM?MOLT_COLOR:(inI?IKC:lot.color)});prev=cp;});}
+    else{segs=[{s:0,e:tAge,color:IKC},{s:tAge,e:dispAge,color:lot.color}];}
+    segs.forEach(function(seg){if(seg.s>=seg.e)return;var sp=toP(addDays(feed,seg.s),seg.s),ep=toP(addDays(feed,Math.min(seg.e,MAX_AGE)),Math.min(seg.e,MAX_AGE));ctx.strokeStyle=seg.color;ctx.lineWidth=2*SCALE;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(sp.x,sp.y);ctx.lineTo(ep.x,ep.y);ctx.stroke();});
+    var p1=toP(feed,0),p2=toP(addDays(feed,dispAge),dispAge);
+    if(over){ctx.strokeStyle=lot.color;ctx.lineWidth=1.5*SCALE;ctx.setLineDash([4*SCALE,3*SCALE]);ctx.globalAlpha=.5;var a0=Math.atan2(p2.y-p1.y,p2.x-p1.x);ctx.beginPath();ctx.moveTo(p2.x,p2.y);ctx.lineTo(p2.x+Math.cos(a0)*18*SCALE,p2.y+Math.sin(a0)*18*SCALE);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;}
+    var ang=Math.atan2(p2.y-p1.y,p2.x-p1.x),hs=7*SCALE;
+    ctx.fillStyle=lot.color;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(p2.x,p2.y);ctx.lineTo(p2.x-hs*Math.cos(ang-0.4),p2.y-hs*Math.sin(ang-0.4));ctx.lineTo(p2.x-hs*Math.cos(ang+0.4),p2.y-hs*Math.sin(ang+0.4));ctx.closePath();ctx.fill();
+    ctx.fillStyle=IKC;ctx.beginPath();ctx.arc(p1.x,p1.y,3*SCALE,0,Math.PI*2);ctx.fill();
+    var fstr=feed.toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'}),ffs=7*SCALE,sfs=6*SCALE;
+    var sp2=[];if(lot.hatchery)sp2.push(lot.hatchery);if(lot.birds)sp2.push(lot.birds.toLocaleString()+'羽');var sstr=sp2.join(' '),hasSub2=sstr.length>0;
+    ctx.font='500 '+ffs+'px monospace';var fw1=ctx.measureText(fstr).width;ctx.font=sfs+'px monospace';var fw2=hasSub2?ctx.measureText(sstr).width:0;
+    var flw=Math.max(fw1,fw2)+6*SCALE,flh=hasSub2?(ffs+sfs+7*SCALE):(ffs+5*SCALE);
+    var fx=p1.x+4*SCALE,fy=p1.y+3*SCALE;if(fx+flw>mxX)fx=p1.x-flw-3*SCALE;if(fy+flh>mxY)fy=p1.y-flh-2*SCALE;
+    ctx.fillStyle='rgba(255,255,255,0.92)';ctx.strokeStyle='#E24B4A';ctx.lineWidth=SCALE;rr(fx,fy,flw,flh,2*SCALE);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#E24B4A';ctx.textAlign='left';ctx.font='500 '+ffs+'px monospace';ctx.fillText(fstr,fx+3*SCALE,fy+ffs);
+    if(hasSub2){ctx.font=sfs+'px monospace';ctx.fillStyle='rgba(80,90,110,0.75)';ctx.fillText(sstr,fx+3*SCALE,fy+ffs+sfs+SCALE);}
+    var midAge=Math.round(dispAge/2),pm=toP(addDays(feed,midAge),midAge);
+    var midInM=hasMolt&&midAge>=mS2&&midAge<mE2,midInI=midAge<tAge;
+    var lc=midInM?MOLT_COLOR:(midInI?IKC:lot.color);
+    if(lot.house){ctx.font='500 '+(8*SCALE)+'px monospace';ctx.fillStyle=lc;ctx.textAlign='center';ctx.fillText(lot.name||('L'+(idx+1)),pm.x,pm.y-14*SCALE);ctx.font=(7*SCALE)+'px monospace';ctx.fillStyle='rgba(60,70,90,0.8)';ctx.fillText(lot.house,pm.x,pm.y-5*SCALE);}
+    else{ctx.font='500 '+(8*SCALE)+'px monospace';ctx.fillStyle=lc;ctx.textAlign='center';ctx.fillText(lot.name||('L'+(idx+1)),pm.x,pm.y-6*SCALE);}
+    if(hasMolt){var pmS=toP(addDays(feed,mS2),mS2),pmE=toP(addDays(feed,mE2),mE2),ms=5*SCALE;diam2(pmS.x,pmS.y,ms);pdfML(pmS.x,pmS.y,mS2+'日齢',addDays(feed,mS2).toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'}),mxX,mxY);diam2(pmE.x,pmE.y,ms);}
+    var pt=toP(td,tAge),sq=4*SCALE,atLimit=(tAge>=MAX_TRANSFER);
+    ctx.fillStyle='#fff';ctx.strokeStyle=atLimit?'#E24B4A':lot.color;ctx.lineWidth=1.5*SCALE;ctx.setLineDash([]);ctx.beginPath();ctx.rect(pt.x-sq,pt.y-sq,sq*2,sq*2);ctx.fill();ctx.stroke();
+    var ds=td.toLocaleDateString('ja-JP',{year:'2-digit',month:'numeric',day:'numeric'}),as2=tAge+'日齢'+(atLimit?' (上限)':''),tfs=7*SCALE;
+    ctx.font='500 '+tfs+'px monospace';var tlw=Math.max(ctx.measureText(ds).width,ctx.measureText(as2).width)+8*SCALE,tlh=tfs*2+8*SCALE;
+    var lx=pt.x-tlw/2,ly=pt.y-tlh-7*SCALE;if(ly<OY+sXH)ly=pt.y+sq+4*SCALE;if(lx+tlw>mxX)lx=mxX-tlw-2*SCALE;if(lx<OX+sYW)lx=OX+sYW+2*SCALE;
+    ctx.fillStyle='rgba(255,255,255,0.93)';ctx.strokeStyle='#E24B4A';ctx.lineWidth=SCALE;rr(lx,ly,tlw,tlh,2*SCALE);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#E24B4A';ctx.textAlign='left';ctx.font='500 '+tfs+'px monospace';ctx.fillText(as2,lx+4*SCALE,ly+tfs+SCALE);ctx.font='500 '+(tfs-SCALE)+'px monospace';ctx.fillText(ds,lx+4*SCALE,ly+tfs*2+3*SCALE);
+    var l1=over?(age+'日齢⚠'):age+'日齢',l2=addDays(feed,age).toLocaleDateString('ja-JP',{year:'2-digit',month:'numeric',day:'numeric'}),bfs=8*SCALE;
+    ctx.font='500 '+bfs+'px monospace';var bw=Math.max(ctx.measureText(l1).width,ctx.measureText(l2).width)+10*SCALE,bh=bfs*2+10*SCALE;
+    var bx=p2.x+Math.cos(ang)*6*SCALE,by3=p2.y+Math.sin(ang)*6*SCALE;if(bx+bw>mxX)bx=p2.x-bw-3*SCALE;if(by3+bh>mxY)by3=p2.y-bh-3*SCALE;if(by3<OY+sXH)by3=p2.y+4*SCALE;
+    ctx.fillStyle='rgba(255,255,255,0.93)';ctx.strokeStyle='#E24B4A';ctx.lineWidth=SCALE;rr(bx,by3,bw,bh,2*SCALE);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#E24B4A';ctx.textAlign='left';ctx.font='500 '+bfs+'px monospace';ctx.fillText(l1,bx+5*SCALE,by3+bfs+2*SCALE);ctx.font='500 '+(bfs-SCALE)+'px monospace';ctx.fillText(l2,bx+5*SCALE,by3+bfs*2+5*SCALE);
+  });
+  // PDF舎繰り線
+  if(pdfRotation){
+    var pdfRots=[].concat(calcHouseRotations(),calcBroodRotations());
+    pdfRots.forEach(function(r){
+      var p1=toP(r.fromDate,r.fromAge),p2=toP(r.toDate,r.toAge);
+      var ang=Math.atan2(p2.y-p1.y,p2.x-p1.x),hs=10*SCALE;
+      var ex=p2.x-hs*0.7*Math.cos(ang),ey=p2.y-hs*0.7*Math.sin(ang);
+      ctx.strokeStyle=r.color;ctx.lineWidth=3*SCALE;ctx.setLineDash([8*SCALE,5*SCALE]);ctx.lineCap='round';ctx.globalAlpha=1;
+      ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(ex,ey);ctx.stroke();
+      ctx.setLineDash([]);ctx.fillStyle=r.color;
+      ctx.beginPath();ctx.moveTo(p2.x,p2.y);ctx.lineTo(p2.x-hs*Math.cos(ang-0.45),p2.y-hs*Math.sin(ang-0.45));ctx.lineTo(p2.x-hs*Math.cos(ang+0.45),p2.y-hs*Math.sin(ang+0.45));ctx.closePath();ctx.fill();
+      var mx=(p1.x+p2.x)/2,my=(p1.y+p2.y)/2,fs=7*SCALE;
+      ctx.font='bold '+fs+'px monospace';
+      var lw=Math.max(ctx.measureText(r.days+'日').width,ctx.measureText(r.label).width)+8*SCALE,lh=fs*2+6*SCALE;
+      var lx=mx-lw/2,ly=my-lh/2;
+      ctx.globalAlpha=0.97;ctx.fillStyle='rgba(255,255,255,0.97)';ctx.strokeStyle=r.color;ctx.lineWidth=SCALE;ctx.setLineDash([]);
+      rr(lx,ly,lw,lh,2*SCALE);ctx.fill();ctx.stroke();
+      ctx.globalAlpha=1;ctx.fillStyle=r.color;ctx.textAlign='center';
+      ctx.font='bold '+fs+'px monospace';ctx.fillText(r.days+'日',mx,my+fs*0.4);
+      ctx.font=(fs-SCALE)+'px monospace';ctx.fillStyle='rgba(50,60,80,0.85)';ctx.fillText(r.label,mx,my+fs*1.3);
+    });
+  }
+  ctx.restore();
+  ctx.strokeStyle='rgba(0,0,0,0.3)';ctx.lineWidth=1.5;ctx.setLineDash([]);ctx.strokeRect(OX+sYW,OY+sXH,PDF_COLS*sCW,ROWS*sCH);
+  var img=cv.toDataURL('image/png');
+  var win=window.open('','_blank','width=900,height=700');
+  if(!win){alert('ポップアップがブロックされています。');return;}
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>SZKローテ</title><style>*{margin:0;padding:0}body{background:#fff}img{display:block;width:100%;height:auto}@media print{@page{size:A4 landscape;margin:0}img{width:297mm;height:210mm;object-fit:contain}.btn-wrap{display:none}}</style></head><body><div class="btn-wrap" style="padding:10px;background:#f5f5f5;display:flex;gap:8px;align-items:center"><button onclick="window.print()" style="padding:8px 20px;background:#185FA5;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500">印刷／PDF保存</button><span style="font-size:12px;color:#666">用紙：A4横、余白：なし</span></div><img src="'+img+'"></body></html>');
+  win.document.close();
+}
+
+
+// ── アンドゥ・リドゥ ─────────────────────────────
+var undoStack=[],redoStack=[];
+function snapshotLots(){return JSON.parse(JSON.stringify(lots));}
+function pushUndo(){undoStack.push({lots:snapshotLots(),nid:nid});if(undoStack.length>50)undoStack.shift();redoStack=[];updateUndoButtons();}
+function updateUndoButtons(){
+  var bu=document.getElementById('btn-undo'),br=document.getElementById('btn-redo');
+  if(bu)bu.disabled=undoStack.length===0;
+  if(br)br.disabled=redoStack.length===0;
+}
+function undo(){
+  if(!undoStack.length)return;
+  redoStack.push({lots:snapshotLots(),nid:nid});
+  var s=undoStack.pop();lots=s.lots;nid=s.nid;
+  editingId=null;_scrolled=true;redraw();renderLotList();updateHouseList();updateUndoButtons();
+  addLog('↩ <span class="log-key">元に戻しました</span>');
+}
+function redo(){
+  if(!redoStack.length)return;
+  undoStack.push({lots:snapshotLots(),nid:nid});
+  var s=redoStack.pop();lots=s.lots;nid=s.nid;
+  editingId=null;_scrolled=true;redraw();renderLotList();updateHouseList();updateUndoButtons();
+  addLog('↪ <span class="log-key">やり直しました</span>');
+}
+document.addEventListener('keydown',function(e){
+  if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&e.key==='z'){e.preventDefault();undo();}
+  if((e.ctrlKey||e.metaKey)&&(e.key==='y'||(e.shiftKey&&e.key==='z'))){e.preventDefault();redo();}
+});
+
+// ── 初期化 ────────────────────────────────────────
+var today=new Date();
+document.getElementById('f-date').value=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+renderLotList();
+setTimeout(initSizes,100);
+window.addEventListener('resize',initSizes);
+</script>
+</body>
+</html>
