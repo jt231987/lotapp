@@ -100,12 +100,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
 .divider{border:none;border-top:0.5px solid rgba(0,0,0,0.1);margin:2px 0}
 @media(prefers-color-scheme:dark){.divider{border-color:rgba(255,255,255,0.1)}}
 .chart-outer{flex:1;overflow:hidden;position:relative}
-.xaxis-top{position:absolute;overflow:hidden;z-index:10;pointer-events:none}.xaxis-bot{position:absolute;overflow:hidden;z-index:10;}
+.xaxis-top,.xaxis-bot{position:absolute;overflow:hidden;z-index:10;pointer-events:none}
 .corner-tl,.corner-bl{position:absolute;z-index:20}
 .chart-mid{position:absolute;left:0;right:0;display:flex;overflow:hidden}
 .yaxis-wrap{overflow:hidden;flex-shrink:0;position:relative;z-index:10}
 .chart-scroll{flex:1;overflow:auto;position:relative}
-#farm-tip{display:none;position:fixed;background:#fff;border:0.5px solid rgba(0,0,0,0.15);border-radius:10px;padding:10px 14px;font-size:11px;pointer-events:none;z-index:300;box-shadow:0 4px 16px rgba(0,0,0,0.15);min-width:280px;max-width:360px;}.ft-title{font-weight:700;font-size:12px;margin-bottom:5px;color:#003060;border-bottom:1px solid #eee;padding-bottom:3px;}.ft-row{display:flex;justify-content:space-between;gap:8px;padding:1px 0;}.ft-lot{color:#555;}.ft-val{font-family:monospace;font-weight:600;color:#111;}.ft-total{border-top:1px solid #ddd;margin-top:3px;padding-top:3px;font-weight:700;font-size:12px;}
+#farm-tip{display:none;position:fixed;background:#fff;border:0.5px solid rgba(0,0,0,0.15);border-radius:10px;padding:10px 14px;font-size:11px;pointer-events:none;z-index:300;box-shadow:0 4px 16px rgba(0,0,0,0.15);min-width:280px;max-width:360px;}.ft-title{font-weight:700;font-size:12px;margin-bottom:5px;color:#003060;border-bottom:1px solid #eee;padding-bottom:3px;}.ft-row{display:flex;justify-content:space-between;gap:8px;padding:1px 0;}.ft-lot{color:#555;}.ft-val{font-family:monospace;font-weight:600;color:#111;}.ft-total{border-top:1px solid #ddd;margin-top:3px;padding-top:3px;font-weight:700;}
 #tooltip{display:none;position:absolute;background:#fff;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;padding:6px 10px;font-size:12px;pointer-events:none;z-index:100;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.1)}
 @media(prefers-color-scheme:dark){#tooltip{background:#1e2535;border-color:rgba(255,255,255,0.2)}}
 .tt-name{font-weight:500;margin-bottom:3px;padding-bottom:3px;border-bottom:0.5px solid rgba(0,0,0,0.1)}
@@ -1474,7 +1474,8 @@ document.getElementById('xaxis-top').addEventListener('mouseleave',function(){
   document.getElementById('axis-tip').style.display='none';
 });
 
-// ── 下の日付軸ホバー：農場全体成績 ──────────────────
+// xaxis-botのpointer-eventsをJSで有効化
+document.getElementById('xaxis-bot').style.pointerEvents='auto';
 var _ftTip=document.getElementById('farm-tip');
 var _ftTimer=null;
 document.getElementById('xaxis-bot').addEventListener('mousemove',function(e){
@@ -1496,21 +1497,14 @@ document.getElementById('xaxis-bot').addEventListener('mousemove',function(e){
         var html='<div class="ft-title">📅 '+mo+'</div>';
         var te=0,tc=0,tw=0;
         d.lots.forEach(function(l){
-          html+='<div class="ft-row">';
-          html+='<span class="ft-lot">'+l.lot+'（'+l.house+'）</span>';
-          html+='<span class="ft-val">';
-          if(l.rate!==null)html+=l.rate.toFixed(1)+'%  ';
-          if(l.eggW!==null)html+=l.eggW.toFixed(1)+'g  ';
-          html+=l.eggs.toLocaleString()+'個  '+l.current.toLocaleString()+'羽';
-          html+='</span></div>';
+          html+='<div class="ft-row"><span class="ft-lot">'+l.lot+'（'+l.house+'）</span>';
+          html+='<span class="ft-val">'+(l.rate!==null?l.rate.toFixed(1)+'%  ':'')+(l.eggW!==null?l.eggW.toFixed(1)+'g  ':'')+l.eggs.toLocaleString()+'個  '+l.current.toLocaleString()+'羽</span></div>';
           te+=l.eggs;tc+=l.current;tw+=l.totalW;
         });
         var tr=tc>0?te/tc*100:0,tew=te>0?tw/te*1000:0;
-        html+='<div class="ft-row ft-total">';
-        html+='<span class="ft-lot">合計</span>';
+        html+='<div class="ft-row ft-total"><span class="ft-lot">合計</span>';
         html+='<span class="ft-val">'+tr.toFixed(1)+'%  '+tew.toFixed(1)+'g  '+te.toLocaleString()+'個  '+tc.toLocaleString()+'羽</span></div>';
         _ftTip.innerHTML=html;
-        _ftTip.style.left=(parseFloat(_ftTip.style.left))+'px';
       }).catch(function(){_ftTip.style.display='none';});
   },300);
 });
