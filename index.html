@@ -250,7 +250,6 @@ function zf(n){return Math.max(Math.round(n*0.5),Math.round(n*zoomLevel));} // �
 var DPR=Math.min(window.devicePixelRatio||1,2);
 
 // ── 状態変数 ──────────────────────────────────────
-window.KEIRYO_API=window.KEIRYO_API||'http://localhost:3001';
 var lots=[],nid=1,dragState=null,VIEW_COLS=120,sideOpen=false;
 var sectionOpen={csv:false,manual:false,lots:false,log:false};
 var editingId=null,showRotation=false;
@@ -782,6 +781,7 @@ cvMain.addEventListener('mousemove',function(e){
     document.getElementById('tt-name').textContent=best.lot.name||('ロット'+best.lot.id);
     var hr=best.lot.house?'<div class="tt-r"><span>成鶏舎</span><span><b>'+best.lot.house+'</b></span></div>':'';
     document.getElementById('tt-body').innerHTML=hr+'<div class="tt-r"><span>日付</span><span>'+best.date.toLocaleDateString('ja-JP')+'</span></div><div class="tt-r"><span>日齢</span><span><b>'+best.ageDays+' 日</b></span></div>';
+    (function(n,d){if(!n)return;var ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');fetch((window.KEIRYO_API||'http://localhost:3001')+'/api/lot-perf/'+encodeURIComponent(n)+'/'+ds).then(function(r){return r.json();}).then(function(v){if(!v.ok)return;var el=document.getElementById('tt-perf');if(!el)return;var h='';if(v.rate!==null)h+='<div class="tt-r"><span>産卵率</span><span><b>'+v.rate.toFixed(1)+'%</b></span></div>';if(v.eggW!==null)h+='<div class="tt-r"><span>卵重</span><span><b>'+v.eggW.toFixed(1)+'g</b></span></div>';el.innerHTML=h;}).catch(function(){});})(best.lot.name,best.date);
     var nearPt=toXY(best.date,best.ageDays,_by);
     tt.style.display='block';
     var ttW=tt.offsetWidth||160,ttH=tt.offsetHeight||80;
