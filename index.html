@@ -1488,8 +1488,7 @@ window.addEventListener('load', function(){
     var mo=date.getFullYear()+'年'+(date.getMonth()+1)+'月';
     _ftTip.style.display='block';
     _ftTip.style.left=(e.clientX+12)+'px';
-    var tipH=_ftTip.offsetHeight||200;
-    _ftTip.style.top=Math.max(10,(e.clientY-tipH-12))+'px';
+    _ftTip.style.top=(e.clientY-220)+'px';
     _ftTip.innerHTML='<div class="ft-title">📅 '+mo+'</div><div style="color:#aaa;font-size:10px;">読み込み中...</div>';
     if(_ftTimer)clearTimeout(_ftTimer);
     _ftTimer=setTimeout(function(){
