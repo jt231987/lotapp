@@ -1474,43 +1474,46 @@ document.getElementById('xaxis-top').addEventListener('mouseleave',function(){
   document.getElementById('axis-tip').style.display='none';
 });
 
-// xaxis-botのpointer-eventsをJSで有効化
-document.getElementById('xaxis-bot').style.pointerEvents='auto';
-var _ftTip=document.getElementById('farm-tip');
-var _ftTimer=null;
-document.getElementById('xaxis-bot').addEventListener('mousemove',function(e){
-  var rect=this.getBoundingClientRect();
-  var px=e.clientX-rect.left+scroll.scrollLeft;
-  var date=posToDate(px,_by);
-  var ds=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
-  var mo=date.getFullYear()+'年'+(date.getMonth()+1)+'月';
-  _ftTip.style.display='block';
-  _ftTip.style.left=(e.clientX+12)+'px';
-  _ftTip.style.top=(e.clientY-10)+'px';
-  _ftTip.innerHTML='<div class="ft-title">📅 '+mo+'</div><div style="color:#aaa;font-size:10px;">読み込み中...</div>';
-  if(_ftTimer)clearTimeout(_ftTimer);
-  _ftTimer=setTimeout(function(){
-    fetch((window.KEIRYO_API||'http://localhost:3001')+'/api/farm-perf/'+ds)
-      .then(function(r){return r.json();})
-      .then(function(d){
-        if(!d.ok||!d.lots.length){_ftTip.innerHTML='<div class="ft-title">'+mo+'</div><div style="color:#aaa;font-size:10px;">データなし</div>';return;}
-        var html='<div class="ft-title">📅 '+mo+'</div>';
-        var te=0,tc=0,tw=0;
-        d.lots.forEach(function(l){
-          html+='<div class="ft-row"><span class="ft-lot">'+l.lot+'（'+l.house+'）</span>';
-          html+='<span class="ft-val">'+(l.rate!==null?l.rate.toFixed(1)+'%  ':'')+(l.eggW!==null?l.eggW.toFixed(1)+'g  ':'')+l.eggs.toLocaleString()+'個  '+l.current.toLocaleString()+'羽</span></div>';
-          te+=l.eggs;tc+=l.current;tw+=l.totalW;
-        });
-        var tr=tc>0?te/tc*100:0,tew=te>0?tw/te*1000:0;
-        html+='<div class="ft-row ft-total"><span class="ft-lot">合計</span>';
-        html+='<span class="ft-val">'+tr.toFixed(1)+'%  '+tew.toFixed(1)+'g  '+te.toLocaleString()+'個  '+tc.toLocaleString()+'羽</span></div>';
-        _ftTip.innerHTML=html;
-      }).catch(function(){_ftTip.style.display='none';});
-  },300);
-});
-document.getElementById('xaxis-bot').addEventListener('mouseleave',function(){
-  _ftTip.style.display='none';
-  if(_ftTimer)clearTimeout(_ftTimer);
+// ── 下の日付軸ホバー ──────────────────────────────
+window.addEventListener('load', function(){
+  var xbot=document.getElementById('xaxis-bot');
+  xbot.style.pointerEvents='auto';
+  var _ftTip=document.getElementById('farm-tip');
+  var _ftTimer=null;
+  xbot.addEventListener('mousemove',function(e){
+    var rect=xbot.getBoundingClientRect();
+    var px=e.clientX-rect.left+scroll.scrollLeft;
+    var date=posToDate(px,_by);
+    var ds=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+    var mo=date.getFullYear()+'年'+(date.getMonth()+1)+'月';
+    _ftTip.style.display='block';
+    _ftTip.style.left=(e.clientX+12)+'px';
+    _ftTip.style.top=(e.clientY-10)+'px';
+    _ftTip.innerHTML='<div class="ft-title">📅 '+mo+'</div><div style="color:#aaa;font-size:10px;">読み込み中...</div>';
+    if(_ftTimer)clearTimeout(_ftTimer);
+    _ftTimer=setTimeout(function(){
+      fetch((window.KEIRYO_API||'http://localhost:3001')+'/api/farm-perf/'+ds)
+        .then(function(r){return r.json();})
+        .then(function(d){
+          if(!d.ok||!d.lots.length){_ftTip.innerHTML='<div class="ft-title">'+mo+'</div><div style="color:#aaa;font-size:10px;">データなし</div>';return;}
+          var html='<div class="ft-title">📅 '+mo+'</div>';
+          var te=0,tc=0,tw=0;
+          d.lots.forEach(function(l){
+            html+='<div class="ft-row"><span class="ft-lot">'+l.lot+'（'+l.house+'）</span>';
+            html+='<span class="ft-val">'+(l.rate!==null?l.rate.toFixed(1)+'%  ':'')+(l.eggW!==null?l.eggW.toFixed(1)+'g  ':'')+l.eggs.toLocaleString()+'個  '+l.current.toLocaleString()+'羽</span></div>';
+            te+=l.eggs;tc+=l.current;tw+=l.totalW;
+          });
+          var tr=tc>0?te/tc*100:0,tew=te>0?tw/te*1000:0;
+          html+='<div class="ft-row ft-total"><span class="ft-lot">合計</span>';
+          html+='<span class="ft-val">'+tr.toFixed(1)+'%  '+tew.toFixed(1)+'g  '+te.toLocaleString()+'個  '+tc.toLocaleString()+'羽</span></div>';
+          _ftTip.innerHTML=html;
+        }).catch(function(){_ftTip.style.display='none';});
+    },300);
+  });
+  xbot.addEventListener('mouseleave',function(){
+    _ftTip.style.display='none';
+    if(_ftTimer)clearTimeout(_ftTimer);
+  });
 });
 
 </script>
