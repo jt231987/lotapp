@@ -250,6 +250,7 @@ function zf(n){return Math.max(Math.round(n*0.5),Math.round(n*zoomLevel));} // �
 var DPR=Math.min(window.devicePixelRatio||1,2);
 
 // ── 状態変数 ──────────────────────────────────────
+window.KEIRYO_API=window.KEIRYO_API||'http://localhost:3001';
 var lots=[],nid=1,dragState=null,VIEW_COLS=120,sideOpen=false;
 var sectionOpen={csv:false,manual:false,lots:false,log:false};
 var editingId=null,showRotation=false;
@@ -1461,6 +1462,40 @@ document.getElementById('xaxis-top').addEventListener('mousemove',function(e){
   tip.innerHTML=html;
   tip.style.background=dark?'#1e2535':'#fff';
   tip.style.display='block';
+  // 産卵率・卵重・合計をAPIから取得
+  (function(hd){
+    var ds=hd.getFullYear()+'-'+String(hd.getMonth()+1).padStart(2,'0')+'-'+String(hd.getDate()).padStart(2,'0');
+    fetch((window.KEIRYO_API||'http://localhost:3001')+'/api/farm-perf/'+ds)
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(!d.ok||!d.lots.length)return;
+        var el=document.getElementById('axis-tip');
+        if(!el)return;
+        var dark=window.matchMedia('(prefers-color-scheme:dark)').matches;
+        var sep='<div style="border-top:1px solid '+(dark?'#334':'#ddd')+';margin:6px 0 4px;"></div>';
+        var ph=sep;
+        var totalEggs=0,totalCurrent=0,totalW=0;
+        d.lots.forEach(function(l){
+          ph+='<div style="display:flex;justify-content:space-between;gap:8px;margin:2px 0;font-size:11px;">';
+          ph+='<span style="color:'+(dark?'#9ca3af':'#555')+'">'+l.lot+'（'+l.house+'）</span>';
+          ph+='<span style="font-family:monospace;font-weight:600;color:'+(dark?'#e2e8f0':'#111')+';">';
+          if(l.rate!==null)ph+=l.rate.toFixed(1)+'%  ';
+          if(l.eggW!==null)ph+=l.eggW.toFixed(1)+'g  ';
+          ph+=l.eggs.toLocaleString()+'個';
+          ph+='</span></div>';
+          totalEggs+=l.eggs;totalCurrent+=l.current;totalW+=l.totalW;
+        });
+        if(d.lots.length>0){
+          var tr=totalCurrent>0?totalEggs/totalCurrent*100:0;
+          var tw=totalEggs>0?totalW/totalEggs*1000:0;
+          ph+='<div style="display:flex;justify-content:space-between;gap:8px;margin:3px 0;font-size:12px;font-weight:700;border-top:1px solid '+(dark?'#334':'#ccc')+';padding-top:3px;">';
+          ph+='<span style="color:'+(dark?'#9ca3af':'#555')+'">合計</span>';
+          ph+='<span style="font-family:monospace;color:'+(dark?'#e2e8f0':'#111')+'">'+tr.toFixed(1)+'%  '+tw.toFixed(1)+'g  '+totalEggs.toLocaleString()+'個  '+totalCurrent.toLocaleString()+'羽</span>';
+          ph+='</div>';
+        }
+        el.innerHTML=el.innerHTML+ph;
+      }).catch(function(){});
+  })(hoverDate);
   var tipX=e.clientX+12,tipY=e.clientY+12;
   if(tipX+220>window.innerWidth)tipX=e.clientX-220;
   if(tipY+200>window.innerHeight)tipY=e.clientY-200;
