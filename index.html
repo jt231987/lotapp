@@ -1480,6 +1480,7 @@ window.addEventListener('load', function(){
   xbot.style.pointerEvents='auto';
   var _ftTip=document.getElementById('farm-tip');
   var _ftTimer=null;
+  var _lastDs='';
   xbot.addEventListener('mousemove',function(e){
     var rect=xbot.getBoundingClientRect();
     var px=e.clientX-rect.left+scroll.scrollLeft;
@@ -1489,6 +1490,8 @@ window.addEventListener('load', function(){
     _ftTip.style.display='block';
     _ftTip.style.left=(e.clientX+12)+'px';
     _ftTip.style.top=(e.clientY-220)+'px';
+    if(ds===_lastDs)return;
+    _lastDs=ds;
     _ftTip.innerHTML='<div class="ft-title">📅 '+mo+'</div><div style="color:#aaa;font-size:10px;">読み込み中...</div>';
     if(_ftTimer)clearTimeout(_ftTimer);
     _ftTimer=setTimeout(function(){
@@ -1499,8 +1502,11 @@ window.addEventListener('load', function(){
           var html='<div class="ft-title">📅 '+mo+'</div>';
           var te=0,tc=0,tw=0;
           d.lots.forEach(function(l){
-            html+='<div class="ft-row"><span class="ft-lot">'+l.lot+'（'+l.house+'）</span>';
-            html+='<span class="ft-val">'+(l.rate!==null?l.rate.toFixed(1)+'%  ':'')+(l.eggW!==null?l.eggW.toFixed(1)+'g  ':'')+l.eggs.toLocaleString()+'個  '+l.current.toLocaleString()+'羽</span></div>';
+            var hc=HOUSE_COLORS[(l.house||'')+'舎']||'#888';
+            html+='<div class="ft-row">';
+            html+='<span class="ft-lot" style="color:'+hc+';font-weight:600;">●'+l.lot+'（'+l.house+'）</span>';
+            html+='<span class="ft-val">'+(l.rate!==null?l.rate.toFixed(1)+'%  ':'')+(l.eggW!==null?l.eggW.toFixed(1)+'g  ':'')+l.eggs.toLocaleString()+'個  '+l.current.toLocaleString()+'羽</span>';
+            html+='</div>';
             te+=l.eggs;tc+=l.current;tw+=l.totalW;
           });
           var tr=tc>0?te/tc*100:0,tew=te>0?tw/te*1000:0;
@@ -1512,7 +1518,8 @@ window.addEventListener('load', function(){
   });
   xbot.addEventListener('mouseleave',function(){
     if(_ftTimer)clearTimeout(_ftTimer);
-    _ftTimer=setTimeout(function(){_ftTip.style.display='none';},300);
+    _ftTip.style.display='none';
+    _lastDs='';
   });
 });
 
