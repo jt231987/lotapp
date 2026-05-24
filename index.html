@@ -787,7 +787,9 @@ cvMain.addEventListener('mousemove',function(e){
     document.getElementById('tt-name').style.color=hc;
     var hr=best.lot.house?'<div class="tt-r"><span>成鶏舎</span><span><b>'+best.lot.house+'</b></span></div>':'';
     document.getElementById('tt-body').innerHTML=hr+'<div class="tt-r"><span>日付</span><span>'+best.date.toLocaleDateString('ja-JP')+'</span></div><div class="tt-r"><span>日齢</span><span><b>'+best.ageDays+' 日</b></span></div>';
-    document.getElementById('tt-perf').innerHTML='';
+    document.getElementById('tt-perf').innerHTML='';document.getElementById('tt-perf').style.color=hc;
+    document.getElementById('tt-perf').style.color=hc;
+
     (function(n,d){if(!n)return;var ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');fetch((window.KEIRYO_API||'http://localhost:3001')+'/api/lot-perf/'+encodeURIComponent(n)+'/'+ds).then(function(r){return r.json();}).then(function(v){if(!v.ok)return;var el=document.getElementById('tt-perf');if(!el)return;var h='';if(v.rate!==null)h+='<div class="tt-r"><span>産卵率</span><span><b>'+v.rate.toFixed(1)+'%</b></span></div>';if(v.eggW!==null)h+='<div class="tt-r"><span>卵重</span><span><b>'+v.eggW.toFixed(1)+'g</b></span></div>';el.innerHTML=h;}).catch(function(){});})(best.lot.name,best.date);
     var nearPt=toXY(best.date,best.ageDays,_by);
     tt.style.display='block';
