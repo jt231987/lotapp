@@ -781,7 +781,7 @@ cvMain.addEventListener('mousemove',function(e){
   var pos=getCanvasXY(e),mx=pos.x,my=pos.y,best=null,bestD=16;
   lots.forEach(function(lot){if(lot.hidden)return;var f=parseDate(lot.feedDate);if(!f||!lot.outAge)return;var dA=Math.min(parseInt(lot.outAge),MAX_AGE),steps=Math.min(dA,500);for(var s=0;s<=steps;s++){var d3=Math.round(s/steps*dA),p=toXY(addDays(f,d3),d3,_by);var dist=Math.sqrt((mx-p.x)*(mx-p.x)+(my-p.y)*(my-p.y));if(dist<bestD){bestD=dist;best={lot:lot,ageDays:d3,date:addDays(f,d3)};}}});
   if(best){
-    document.getElementById('tt-name').textContent=best.lot.name||('ロット'+best.lot.id);
+    document.getElementById('tt-name').textContent=best.lot.name||('ロット'+best.lot.id);document.getElementById('tt-name').style.color=HOUSE_COLORS[(best.lot.house||'')+'舎']||'#003060';
     var hr=best.lot.house?'<div class="tt-r"><span>成鶏舎</span><span><b>'+best.lot.house+'</b></span></div>':'';
     document.getElementById('tt-body').innerHTML=hr+'<div class="tt-r"><span>日付</span><span>'+best.date.toLocaleDateString('ja-JP')+'</span></div><div class="tt-r"><span>日齢</span><span><b>'+best.ageDays+' 日</b></span></div>';
     document.getElementById('tt-perf').innerHTML='';
