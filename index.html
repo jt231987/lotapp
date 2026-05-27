@@ -1285,9 +1285,10 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 var LS_KEY='szk_lots_v1';
 function saveToLocal(){
   // ロットをSupabaseに一括upsert
-  var rows = lots.map(function(l){
-    return {
-      id: typeof l.id === 'string' ? l.id : undefined,
+  // UUIDを持つロット（Supabase登録済み）はupsert、数値idのロット（localStorage由来）はinsert
+  var uuidRows = [], newRows = [];
+  lots.forEach(function(l){
+    var row = {
       lot_name: l.name || '',
       feed_date: l.feedDate || null,
       out_age: parseInt(l.outAge) || 0,
@@ -1302,10 +1303,24 @@ function saveToLocal(){
       hidden: l.hidden || false,
       local_id: typeof l.id === 'number' ? l.id : null
     };
+    if(typeof l.id === 'string'){ row.id = l.id; uuidRows.push(row); }
+    else { newRows.push({lot: l, row: row}); }
   });
-  if(rows.length > 0){
-    sb.from('rotation_lots').upsert(rows, {onConflict: 'id'}).then(function(res){
-      if(res.error) console.error('save error:', res.error);
+  if(uuidRows.length > 0){
+    sb.from('rotation_lots').upsert(uuidRows, {onConflict: 'id'}).then(function(res){
+      if(res.error) console.error('upsert error:', res.error);
+    });
+  }
+  if(newRows.length > 0){
+    sb.from('rotation_lots').insert(newRows.map(function(x){return x.row;})).select().then(function(res){
+      if(res.error){ console.error('insert error:', res.error); return; }
+      // 返ってきたUUIDをlotsに反映
+      if(res.data) res.data.forEach(function(r, i){
+        var localId = newRows[i].row.local_id;
+        for(var j=0;j<lots.length;j++){
+          if(lots[j].id === localId){ lots[j].id = r.id; break; }
+        }
+      });
     });
   }
   // annotationsはlocalStorageに保存
