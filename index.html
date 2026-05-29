@@ -990,7 +990,7 @@ function renderLotList(){
             '<span>日齢〜</span>'+
           '</div>'+
         '</div>'+
-        '<button class="btn-form-save" onclick="saveEdit('+l.id+')">保存</button>'+
+        '<button class="btn-form-save" onclick="saveEdit(''+l.id+'')">保存</button>'+
         '<button class="btn-cancel" onclick="cancelEdit()">キャンセル</button>'+
         '<button class="btn-del-lot" onclick="if(confirm(\'このロットを削除しますか？\')){cancelEdit();removeLot('+l.id+')}">🗑 ロットを削除</button>'+
       '</div>':'';
