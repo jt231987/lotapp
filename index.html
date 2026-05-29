@@ -259,7 +259,7 @@ var sectionOpen={csv:false,manual:false,lots:false,log:false};
 var editingId=null,showRotation=false;
 var logEntries=[],logPanelOpen=false;
 var editMode=false;
-var annotations=[]; // 注釈データ [{id,x,y,text}]
+var annotations=[]; // 注釈データ [{id,lotId,date,age,text}]
 var annotMode=false; // 注釈入力モード
 var annotDrag=null; // ドラッグ中の注釈
 var highlightHouse=null;
@@ -287,6 +287,11 @@ function renderLog(){
   }).join('');
 }
 function addLog(msg){
+  // Supabaseに保存（HTMLタグを除去してテキストのみ）
+  var plainText = msg.replace(/<[^>]+>/g,'');
+  sb.from('rotation_logs').insert({message: plainText}).then(function(res){
+    if(res.error) console.error('log save error:', res.error);
+  });
   var now=new Date();
   var t=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
   logEntries.push({time:t,msg:msg});
@@ -1348,7 +1353,28 @@ async function loadFromSupabase(){
     };
   });
   nid = lots.length + 1;
-  try{annotations = JSON.parse(localStorage.getItem('szk_rote_annotations') || '[]');}catch(e){annotations=[];}
+  // 変更ログをSupabaseから読み込み
+  var logRes = await sb.from('rotation_logs').select('*').order('created_at', {ascending:false}).limit(50);
+  if(!logRes.error && logRes.data){
+    var logEl = document.getElementById('log-list');
+    if(logEl){
+      logEl.innerHTML = logRes.data.map(function(r){
+        var d = new Date(r.created_at);
+        var ds = d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+        return '<li><span style="color:#aaa;font-size:10px;">'+ds+'</span> '+r.message+'</li>';
+      }).join('');
+    }
+  }
+
+  // 注釈をSupabaseから読み込み
+  var annotRes = await sb.from('rotation_annotations').select('*').order('created_at');
+  if(!annotRes.error && annotRes.data){
+    annotations = annotRes.data.map(function(r){
+      return {id:r.id, lotId:r.lot_id, date:r.date, age:r.age, text:r.text};
+    });
+  } else {
+    try{annotations = JSON.parse(localStorage.getItem('szk_rote_annotations') || '[]');}catch(e){annotations=[];}
+  }
   return true;
 }
 function loadFromLocal(){
@@ -1413,21 +1439,32 @@ function getAnnotW(text){
 
 function hitAnnot(pos){
   for(var i=annotations.length-1;i>=0;i--){
-    var a=annotations[i],th=22,tw=getAnnotW(a.text);
-    if(pos.x>=a.x&&pos.x<=a.x+tw&&pos.y>=a.y-th+4&&pos.y<=a.y+4)return i;
+    var a=annotations[i];
+    var p=annotToXY(a);
+    if(!p)continue;
+    var th=22,tw=getAnnotW(a.text);
+    if(pos.x>=p.x&&pos.x<=p.x+tw&&pos.y>=p.y-th+4&&pos.y<=p.y+4)return i;
   }
   return -1;
+}
+function annotToXY(a){
+  if(!a.date||a.age===undefined)return a.x?{x:a.x,y:a.y}:null;
+  var d=parseDate(a.date);
+  if(!d)return null;
+  return toXY(d,a.age,_by);
 }
 
 function drawAnnotations(ctx){
   annotations.forEach(function(a){
+    var p=annotToXY(a);
+    if(!p)return;
     var annotFs=Math.max(8,Math.round(13*zoomLevel));ctx.font='bold '+annotFs+'px monospace';
     var tw=getAnnotW(a.text),th=22;
     ctx.fillStyle='rgba(255,255,255,0.93)';
     ctx.strokeStyle='#E24B4A';ctx.lineWidth=1.5;ctx.setLineDash([]);
-    rrect(ctx,a.x,a.y-th+4,tw,th,3);ctx.fill();ctx.stroke();
+    rrect(ctx,p.x,p.y-th+4,tw,th,3);ctx.fill();ctx.stroke();
     ctx.fillStyle='#E24B4A';ctx.textAlign='left';ctx.font='bold '+annotFs+'px monospace';
-    ctx.fillText(a.text,a.x+6,a.y);
+    ctx.fillText(a.text,p.x+6,p.y);
   });
 }
 
@@ -1441,7 +1478,30 @@ cvMain.addEventListener('click',function(e){
   if(hitAnnot(pos)>=0)return; // 既存注釈クリックは無視
   var text=prompt('注釈テキストを入力');
   if(!text||!text.trim())return;
-  annotations.push({id:Date.now(),x:pos.x,y:pos.y,text:text.trim()});
+  // クリック位置をdate+ageに変換
+  var d=posToDate(pos.x,_by);
+  var age=posToAge(pos.y);
+  // 近いロットを探す
+  var nearLot=null;
+  lots.forEach(function(lot){
+    if(lot.hidden)return;
+    var feed=parseDate(lot.feedDate);
+    if(!feed)return;
+    var lotAge=Math.round((d-feed)/(1000*60*60*24));
+    if(lotAge>=0&&lotAge<=parseInt(lot.outAge))nearLot=lot;
+  });
+  var newAnnot={id:Date.now().toString(),lotId:nearLot?nearLot.id:null,date:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'),age:age,text:text.trim()};
+  annotations.push(newAnnot);
+  // Supabaseに保存
+  sb.from('rotation_annotations').insert({
+    lot_id: nearLot?nearLot.id:null,
+    date: newAnnot.date,
+    age: age,
+    text: text.trim()
+  }).select().single().then(function(res){
+    if(res.data) newAnnot.id=res.data.id;
+    if(res.error) console.error('annotation save error:', res.error);
+  });
   saveToLocal();redraw();
 });
 
@@ -1453,6 +1513,12 @@ cvMain.addEventListener('contextmenu',function(e){
   if(idx>=0){
     e.preventDefault();
     if(confirm('"'+annotations[idx].text+'" を削除しますか？')){
+      var delId=annotations[idx].id;
+      if(typeof delId==='string'&&delId.length>10){
+        sb.from('rotation_annotations').delete().eq('id',delId).then(function(res){
+          if(res.error) console.error('annotation delete error:', res.error);
+        });
+      }
       annotations.splice(idx,1);saveToLocal();redraw();
     }
   }
