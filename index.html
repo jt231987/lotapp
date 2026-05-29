@@ -933,6 +933,7 @@ function saveEdit(id){
   lot.moltAge=moltChk?parseInt(document.getElementById('e-molt-age-'+id).value)||null:null;
   lot.transferAge=clampT(lot.transferAge||Math.min(120,Math.min(outAge,MAX_AGE)),outAge);
   pushUndo();addLog('<span class="log-lot">'+(lot.name||'ロット'+lot.id)+'</span>の情報を<span class="log-key">編集保存</span>しました');
+  saveToLocal();
   editingId=null;_scrolled=true;redraw();renderLotList();updateHouseList();
 }
 function toggleEditMolt(id){var w=document.getElementById('e-molt-wrap-'+id);if(w)w.style.display=document.getElementById('e-molt-chk-'+id).checked?'flex':'none';}
