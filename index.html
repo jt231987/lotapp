@@ -1243,7 +1243,7 @@ function exportPDF(){
   var img=cv.toDataURL('image/png');
   var win=window.open('','_blank','width=900,height=700');
   if(!win){alert('ポップアップがブロックされています。');return;}
-  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>SZKローテ</title><style>*{margin:0;padding:0}body{background:#fff}img{display:block;width:100%;height:auto}.btn-wrap{padding:8px 12px;background:#f5f5f5;display:flex;gap:8px;align-items:center}@media print{@page{size:A4 landscape;margin:0}.btn-wrap{display:none!important;height:0!important;overflow:hidden!important}img{width:297mm;height:210mm;object-fit:contain}}</style></head><body><div class="btn-wrap"><button onclick="window.print()" style="padding:7px 18px;background:#185FA5;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500">印刷／PDF保存</button><span style="font-size:12px;color:#666">用紙：A4横、余白：なし</span></div><img src="'+img+'"></body></html>');
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>SZKローテ</title><style>*{margin:0;padding:0}body{background:#fff}img{display:block;width:100%;height:auto}.btn-wrap{padding:8px 12px;background:#f5f5f5;display:flex;gap:8px;align-items:center}@media print{@page{size:A3 landscape;margin:0}.btn-wrap{display:none!important;height:0!important;overflow:hidden!important}img{width:420mm;height:297mm;object-fit:contain}}</style></head><body><div class="btn-wrap"><button onclick="window.print()" style="padding:7px 18px;background:#185FA5;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500">印刷／PDF保存</button><span style="font-size:12px;color:#666">用紙：A4横、余白：なし</span></div><img src="'+img+'"></body></html>');
   win.document.close();
 }
 
