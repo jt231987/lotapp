@@ -323,7 +323,7 @@ function toggleSection(id){
   if(sectionOpen[id]){b.classList.remove('closed');b.style.maxHeight=id==='csv'?'200px':id==='manual'?'640px':'800px';a.classList.add('open');}
   else{b.classList.add('closed');a.classList.remove('open');}
 }
-function toggleSide(){if(!editMode&&!sideOpen)return;
+function toggleSide(){
   sideOpen=!sideOpen;
   document.getElementById('side').classList.toggle('hidden',!sideOpen);
   document.getElementById('toggle-btn').textContent=sideOpen?'◀ ロット一覧':'▶ ロット一覧';
