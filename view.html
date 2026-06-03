@@ -134,10 +134,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
     .btn-add, .btn-csv, #section-csv, #section-manual, #section-log,
     .btn-form-save, .btn-cancel, .btn-del-lot { display: none !important; }
     #toggle-btn { display: inline-block !important; }
-    /* 閲覧専用：CSV・手動登録を非表示 */
+    /* 閲覧専用：CSV・手動登録・非表示ボタンを非表示 */
     [onclick="toggleSection('csv')"],
     [onclick="toggleSection('manual')"] { display: none !important; }
     #body-csv, #body-manual { display: none !important; }
+    .btn-hide, .btn-add, .log-clear { display: none !important; }
     /* ロット一覧はサイドバーで表示（編集フォームは非表示）*/
     .collapsible-hdr { display: flex !important; pointer-events: none; }
     .collapsible-body.closed { max-height: 800px !important; }
