@@ -135,10 +135,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
     .btn-form-save, .btn-cancel, .btn-del-lot { display: none !important; }
     #toggle-btn { display: inline-block !important; }
     /* 閲覧専用：CSV・手動登録・非表示ボタンを非表示 */
-    [onclick="toggleSection('csv')"],
-    [onclick="toggleSection('manual')"] { display: none !important; }
-    #body-csv, #body-manual { display: none !important; }
     .btn-hide, .btn-add, .log-clear { display: none !important; }
+    #section-csv, #section-manual { display: none !important; }
+    [onclick="toggleSection('csv')"],
+    [onclick="toggleSection('manual')"],
+    #body-csv, #body-manual { display: none !important; }
     /* ロット一覧はサイドバーで表示（編集フォームは非表示）*/
     .collapsible-hdr { display: flex !important; pointer-events: none; }
     .collapsible-body.closed { max-height: 800px !important; }
@@ -173,7 +174,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
   <div class="body">
     <div class="side hidden" id="side">
       <div>
-        <div class="collapsible-hdr" onclick="toggleSection('csv')"><span class="sec-lbl">CSV読み込み</span><span class="collapsible-arrow" id="arrow-csv">▶</span></div>
+        <div class="collapsible-hdr" id="section-csv" onclick="toggleSection('csv')"><span class="sec-lbl">CSV読み込み</span><span class="collapsible-arrow" id="arrow-csv">▶</span></div>
         <div class="collapsible-body closed" id="body-csv" style="max-height:0">
           <div style="height:6px"></div>
           <div class="drop-zone" id="drop-zone" onclick="document.getElementById('csv-input').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event)">クリックまたは<br>ドラッグ＆ドロップ</div>
@@ -183,7 +184,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
       </div>
       <hr class="divider">
       <div>
-        <div class="collapsible-hdr" onclick="toggleSection('manual')"><span class="sec-lbl">手動登録</span><span class="collapsible-arrow" id="arrow-manual">▶</span></div>
+        <div class="collapsible-hdr" id="section-manual" onclick="toggleSection('manual')"><span class="sec-lbl">手動登録</span><span class="collapsible-arrow" id="arrow-manual">▶</span></div>
         <div class="collapsible-body closed" id="body-manual" style="max-height:0">
           <div style="height:6px"></div>
           <div class="form-row"><label>ロット名</label><input id="f-name" maxlength="16"></div>
