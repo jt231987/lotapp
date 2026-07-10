@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>鈴木養鶏園・ローテ</title>
+<title>SZKローテ</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -261,7 +261,8 @@ var logEntries=[],logPanelOpen=false;
 var editMode=false;
 var annotations=[]; // 注釈データ [{id,lotId,date,age,text}]
 var annotMode=false; // 注釈入力モード
-var annotDrag=null; // ドラッグ中の注釈
+var annotDrag=null; // {idx, type:'move'|'resize'|'rotate', ox,oy, moved}
+var ANNOT_HANDLE=8; // ハンドルサイズ(px)
 var highlightHouse=null;
 var zoomLevel=1.0; // ズームレベル（0.25〜1.0） // ハイライト中の成鶏舎名
 // とりま線
@@ -585,14 +586,14 @@ function drawLot(ctx,lot,idx,by,W,H,alpha){
   ctx.fillStyle=dark?'#1a1f2e':'#fff';ctx.strokeStyle=atLimit?'#E24B4A':lot.color;ctx.lineWidth=isDT?3:2.5;ctx.setLineDash([]);
   ctx.beginPath();ctx.rect(pt.x-sq,pt.y-sq,sq*2,sq*2);ctx.fill();ctx.stroke();
   if(isDT){ctx.strokeStyle=atLimit?'#E24B4A':lot.color;ctx.lineWidth=1.5;ctx.globalAlpha=alpha*0.35;ctx.beginPath();ctx.arc(pt.x,pt.y,11,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=alpha;}
-  var ds=td.toLocaleDateString('ja-JP',{year:'2-digit',month:'numeric',day:'numeric'}),as=(tAge+1)+'日齢'+(atLimit?' (上限)':''),fs=Math.max(8,Math.round(12*zoomLevel));
+  var ds=td.toLocaleDateString('ja-JP',{year:'2-digit',month:'numeric',day:'numeric'}),as=tAge+'日齢'+(atLimit?' (上限)':''),fs=Math.max(8,Math.round(12*zoomLevel));
   ctx.font='500 '+fs+'px monospace';var lw=Math.max(ctx.measureText(ds).width,ctx.measureText(as).width)+12,lh=fs*2+12;
   var lx=pt.x-lw/2,ly=pt.y-lh-10;if(ly<0)ly=pt.y+sq+6;if(lx+lw>W)lx=W-lw-2;if(lx<0)lx=2;
   ctx.fillStyle=dark?'rgba(20,25,40,0.92)':'rgba(255,255,255,0.95)';ctx.strokeStyle='#E24B4A';ctx.lineWidth=1.5;ctx.setLineDash([]);
   rrect(ctx,lx,ly,lw,lh,3);ctx.fill();ctx.stroke();
   ctx.fillStyle='#E24B4A';ctx.textAlign='left';ctx.font='500 '+fs+'px monospace';ctx.fillText(as,lx+6,ly+fs+1);ctx.font='500 '+(fs-1)+'px monospace';ctx.fillText(ds,lx+6,ly+fs*2+5);
   // アウトラベル
-  var l1=over?((age+1)+'日齢 ⚠超過'):(age+1)+'日齢',l2=addDays(feed,age).toLocaleDateString('ja-JP',{year:'2-digit',month:'numeric',day:'numeric'}),fs2=Math.max(8,Math.round(13*zoomLevel));
+  var l1=over?(age+'日齢 ⚠超過'):age+'日齢',l2=addDays(feed,age).toLocaleDateString('ja-JP',{year:'2-digit',month:'numeric',day:'numeric'}),fs2=Math.max(8,Math.round(13*zoomLevel));
   ctx.font='500 '+fs2+'px monospace';var bw=Math.max(ctx.measureText(l1).width,ctx.measureText(l2).width)+14,bh=fs2*2+14;
   var bx=p2.x+Math.cos(ang)*8,by2=p2.y+Math.sin(ang)*8;if(bx+bw>W)bx=p2.x-bw-4;if(by2+bh>H)by2=p2.y-bh-4;if(by2<0)by2=p2.y+4;
   ctx.fillStyle=dark?'rgba(20,25,40,0.92)':'rgba(255,255,255,0.95)';ctx.strokeStyle='#E24B4A';ctx.lineWidth=1.5;ctx.setLineDash([]);
@@ -1125,7 +1126,7 @@ function exportPDF(){
   var cv=document.createElement('canvas');cv.width=PW;cv.height=PH;
   var ctx=cv.getContext('2d');
   ctx.fillStyle='#fff';ctx.fillRect(0,0,PW,PH);
-  ctx.font='bold '+(14*SCALE)+'px sans-serif';ctx.fillStyle='#111';ctx.textAlign='left';ctx.fillText('SZKローテ',ML,MT-8*SCALE);
+  ctx.font='bold '+(14*SCALE)+'px sans-serif';ctx.fillStyle='#111';ctx.textAlign='left';ctx.fillText('鈴木養鶏園ローテ',ML,MT-8*SCALE);
   ctx.font=(9*SCALE)+'px monospace';ctx.fillStyle='#666';ctx.textAlign='right';ctx.fillText(pdfBase+'年〜'+(pdfBase+2)+'年  出力: '+today.toLocaleDateString('ja-JP'),PW-MR,MT-8*SCALE);
   var OX=ML,OY=MT,gc='rgba(0,0,0,0.07)',gs='rgba(0,0,0,0.2)';
   ctx.fillStyle='rgba(59,130,246,0.07)';ctx.fillRect(OX+sYW,OY+sXH+(ROWS-4)*sCH,PDF_COLS*sCW,4*sCH);
@@ -1177,7 +1178,7 @@ function exportPDF(){
     if(hasMolt){var pmS=toP(addDays(feed,mS2),mS2),pmE=toP(addDays(feed,mE2),mE2),ms=5*SCALE;diam2(pmS.x,pmS.y,ms);pdfML(pmS.x,pmS.y,mS2+'日齢',addDays(feed,mS2).toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'}),mxX,mxY);diam2(pmE.x,pmE.y,ms);}
     var pt=toP(td,tAge),sq=4*SCALE,atLimit=(tAge>=MAX_TRANSFER);
     ctx.fillStyle='#fff';ctx.strokeStyle=atLimit?'#E24B4A':lot.color;ctx.lineWidth=1.5*SCALE;ctx.setLineDash([]);ctx.beginPath();ctx.rect(pt.x-sq,pt.y-sq,sq*2,sq*2);ctx.fill();ctx.stroke();
-    var ds=td.toLocaleDateString('ja-JP',{year:'2-digit',month:'numeric',day:'numeric'}),as2=(tAge+1)+'日齢'+(atLimit?' (上限)':''),tfs=7*SCALE;
+    var ds=td.toLocaleDateString('ja-JP',{year:'2-digit',month:'numeric',day:'numeric'}),as2=tAge+'日齢'+(atLimit?' (上限)':''),tfs=7*SCALE;
     ctx.font='500 '+tfs+'px monospace';var tlw=Math.max(ctx.measureText(ds).width,ctx.measureText(as2).width)+8*SCALE,tlh=tfs*2+8*SCALE;
     var lx=pt.x-tlw/2,ly=pt.y-tlh-7*SCALE;if(ly<OY+sXH)ly=pt.y+sq+4*SCALE;if(lx+tlw>mxX)lx=mxX-tlw-2*SCALE;if(lx<OX+sYW)lx=OX+sYW+2*SCALE;
     ctx.fillStyle='rgba(255,255,255,0.93)';ctx.strokeStyle='#E24B4A';ctx.lineWidth=SCALE;rr(lx,ly,tlw,tlh,2*SCALE);ctx.fill();ctx.stroke();
@@ -1434,13 +1435,23 @@ function getAnnotW(text){
 function hitAnnot(pos){
   for(var i=annotations.length-1;i>=0;i--){
     var a=annotations[i];
-    var p=annotToXY(a);
-    if(!p)continue;
-    var th=22,tw=getAnnotW(a.text);
-    if(pos.x>=p.x&&pos.x<=p.x+tw&&pos.y>=p.y-th+4&&pos.y<=p.y+4)return i;
+    var box=getAnnotBox(a);if(!box)continue;
+    // 回転座標系に変換
+    var cx=box.x+box.w/2,cy=box.y-box.h/2,ang=box.angle;
+    var dx=pos.x-cx,dy=pos.y-cy;
+    var lx=dx*Math.cos(-ang)-dy*Math.sin(-ang);
+    var ly=dx*Math.sin(-ang)+dy*Math.cos(-ang);
+    var hx=box.w/2,hy=box.h/2,hs=ANNOT_HANDLE/2;
+    // 回転ハンドル（右上）
+    if(editMode&&annotMode&&Math.sqrt((lx-hx)*(lx-hx)+(ly+hy)*(ly+hy))<hs+2)return{idx:i,type:'rotate'};
+    // リサイズハンドル（右下）
+    if(editMode&&annotMode&&Math.sqrt((lx-hx)*(lx-hx)+(ly-hy)*(ly-hy))<hs+2)return{idx:i,type:'resize'};
+    // 本体
+    if(lx>=-hx&&lx<=hx&&ly>=-hy&&ly<=hy)return{idx:i,type:'move'};
   }
   return -1;
 }
+function hitAnnotIdx(pos){var h=hitAnnot(pos);return h===-1?-1:(h.idx!==undefined?h.idx:h);}
 function annotToXY(a){
   if(!a.date||a.age===undefined)return a.x?{x:a.x,y:a.y}:null;
   var d=parseDate(a.date);
@@ -1448,17 +1459,38 @@ function annotToXY(a){
   return toXY(d,a.age,_by);
 }
 
+function getAnnotBox(a){
+  var p=annotToXY(a);if(!p)return null;
+  var sc=a.scale||1;
+  var annotFs=Math.max(8,Math.round(13*zoomLevel*sc));
+  var tmp=document.createElement('canvas').getContext('2d');
+  tmp.font='bold '+annotFs+'px monospace';
+  var tw=tmp.measureText(a.text).width+12,th=annotFs+10;
+  return{x:p.x,y:p.y,w:tw,h:th,fs:annotFs,angle:a.angle||0};
+}
+
 function drawAnnotations(ctx){
   annotations.forEach(function(a){
-    var p=annotToXY(a);
-    if(!p)return;
-    var annotFs=Math.max(8,Math.round(13*zoomLevel));ctx.font='bold '+annotFs+'px monospace';
-    var tw=getAnnotW(a.text),th=22;
+    var box=getAnnotBox(a);if(!box)return;
+    ctx.save();
+    ctx.translate(box.x+box.w/2,box.y-box.h/2);
+    ctx.rotate(box.angle);
+    var hx=box.w/2,hy=box.h/2;
     ctx.fillStyle='rgba(255,255,255,0.93)';
     ctx.strokeStyle='#E24B4A';ctx.lineWidth=1.5;ctx.setLineDash([]);
-    rrect(ctx,p.x,p.y-th+4,tw,th,3);ctx.fill();ctx.stroke();
-    ctx.fillStyle='#E24B4A';ctx.textAlign='left';ctx.font='bold '+annotFs+'px monospace';
-    ctx.fillText(a.text,p.x+6,p.y);
+    rrect(ctx,-hx,-hy,box.w,box.h,3);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#E24B4A';ctx.textAlign='left';ctx.font='bold '+box.fs+'px monospace';
+    ctx.fillText(a.text,-hx+6,hy-4);
+    // ハンドル（編集モード時のみ）
+    if(editMode&&annotMode){
+      // リサイズハンドル（右下）
+      ctx.fillStyle='#2563eb';ctx.strokeStyle='#fff';ctx.lineWidth=1;ctx.setLineDash([]);
+      ctx.beginPath();ctx.arc(hx,hy,ANNOT_HANDLE/2,0,Math.PI*2);ctx.fill();ctx.stroke();
+      // 回転ハンドル（右上）
+      ctx.fillStyle='#16a34a';
+      ctx.beginPath();ctx.arc(hx,-hy,ANNOT_HANDLE/2,0,Math.PI*2);ctx.fill();ctx.stroke();
+    }
+    ctx.restore();
   });
 }
 
@@ -1469,7 +1501,7 @@ cvMain.addEventListener('click',function(e){
   if(!annotMode||!editMode)return;
   if(annotDrag&&annotDrag.moved)return; // ドラッグ後はスキップ
   var pos=getCanvasXY(e);
-  if(hitAnnot(pos)>=0)return; // 既存注釈クリックは無視
+  if(hitAnnotIdx(pos)>=0)return; // 既存注釈クリックは無視
   var text=prompt('注釈テキストを入力');
   if(!text||!text.trim())return;
   // クリック位置をdate+ageに変換
@@ -1522,11 +1554,20 @@ cvMain.addEventListener('contextmenu',function(e){
 cvMain.addEventListener('mousedown',function(e){
   if(!editMode)return;
   var pos=getCanvasXY(e);
-  var idx=hitAnnot(pos);
-  if(idx>=0){
-    annotDrag={idx:idx,ox:pos.x-annotations[idx].x,oy:pos.y-annotations[idx].y,moved:false};
+  var hit=hitAnnot(pos);
+  if(hit!==-1){
+    var aidx=hit.idx!==undefined?hit.idx:hit;
+    var atype=hit.type||'move';
+    var box=getAnnotBox(annotations[aidx]);
+    var cx=box?box.x+box.w/2:0,cy=box?box.y-box.h/2:0;
+    annotDrag={idx:aidx,type:atype,ox:pos.x,oy:pos.y,
+      startAngle:annotations[aidx].angle||0,
+      startScale:annotations[aidx].scale||1,
+      cx:cx,cy:cy,
+      startDist:Math.sqrt((pos.x-cx)*(pos.x-cx)+(pos.y-cy)*(pos.y-cy)),
+      moved:false};
     e.stopImmediatePropagation();
-    document.body.style.cursor='grabbing';
+    document.body.style.cursor=atype==='rotate'?'crosshair':atype==='resize'?'nwse-resize':'grabbing';
     e.preventDefault();
     return;
   }
@@ -1534,8 +1575,22 @@ cvMain.addEventListener('mousedown',function(e){
 document.addEventListener('mousemove',function(e){
   if(!annotDrag)return;
   var pos=getCanvasXY(e);
-  annotations[annotDrag.idx].x=pos.x-annotDrag.ox;
-  annotations[annotDrag.idx].y=pos.y-annotDrag.oy;
+  var a=annotations[annotDrag.idx];
+  if(annotDrag.type==='move'){
+    a.x=(a.x||0)+(pos.x-annotDrag.ox);
+    a.y=(a.y||0)+(pos.y-annotDrag.oy);
+    // date/ageも追従
+    var d=posToDate(pos.x,_by);
+    a.date=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    a.age=posToAge(pos.y);
+    annotDrag.ox=pos.x;annotDrag.oy=pos.y;
+  } else if(annotDrag.type==='rotate'){
+    var ang=Math.atan2(pos.y-annotDrag.cy,pos.x-annotDrag.cx);
+    a.angle=ang-Math.PI/4;
+  } else if(annotDrag.type==='resize'){
+    var dist=Math.sqrt((pos.x-annotDrag.cx)*(pos.x-annotDrag.cx)+(pos.y-annotDrag.cy)*(pos.y-annotDrag.cy));
+    a.scale=Math.max(0.5,Math.min(4,annotDrag.startScale*(dist/Math.max(1,annotDrag.startDist))));
+  }
   annotDrag.moved=true;
   redraw();
 });
