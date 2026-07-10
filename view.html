@@ -1260,6 +1260,34 @@ function exportPDF(){
   }
   ctx.strokeStyle='rgba(0,0,0,0.3)';ctx.lineWidth=1.5;ctx.setLineDash([]);
   ctx.strokeRect(OX+sYW,OY+sXH,PDF_COLS*sCW,ROWS*sCH+ibH);
+
+  // 注釈描画
+  if(annotations&&annotations.length){
+    annotations.forEach(function(a){
+      if(!a.text)return;
+      var aDate=new Date(a.date);
+      var ap=toP(aDate,a.age||0);
+      if(ap.x<OX+sYW||ap.x>OX+sYW+PDF_COLS*sCW)return;
+      var fs=6*SCALE;
+      ctx.font='bold '+fs+'px monospace';
+      var tw=ctx.measureText(a.text).width+8*SCALE,th=fs+8*SCALE;
+      var ax=ap.x-tw/2,ay=ap.y-th-4*SCALE;
+      if(ax<OX+sYW)ax=OX+sYW+2*SCALE;
+      if(ax+tw>OX+sYW+PDF_COLS*sCW)ax=OX+sYW+PDF_COLS*sCW-tw-2*SCALE;
+      if(ay<OY+sXH)ay=ap.y+4*SCALE;
+      ctx.globalAlpha=0.92;
+      ctx.fillStyle='rgba(255,255,255,0.95)';ctx.strokeStyle='#E24B4A';ctx.lineWidth=SCALE;
+      rr(ax,ay,tw,th,2*SCALE);ctx.fill();ctx.stroke();
+      ctx.globalAlpha=1;
+      ctx.fillStyle='#E24B4A';ctx.textAlign='center';
+      ctx.fillText(a.text,ax+tw/2,ay+fs+3*SCALE);
+      // 引き出し線
+      ctx.strokeStyle='#E24B4A';ctx.lineWidth=SCALE;ctx.setLineDash([2*SCALE,2*SCALE]);
+      ctx.beginPath();ctx.moveTo(ax+tw/2,ay+th);ctx.lineTo(ap.x,ap.y);ctx.stroke();
+      ctx.setLineDash([]);
+    });
+  }
+
   var img=cv.toDataURL('image/png');
   var win=window.open('','_blank','width=900,height=700');
   if(!win){alert('ポップアップがブロックされています。');return;}
