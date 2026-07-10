@@ -1612,7 +1612,7 @@ document.getElementById('xaxis-top').addEventListener('mousemove',function(e){
         var ageStyle=e.isOut||e.isTransfer?'font-family:monospace;color:#E24B4A;font-weight:700':'font-family:monospace;color:'+(dark?'#e2e8f0':'#111');
         html+='<div style="display:flex;justify-content:space-between;gap:16px;margin:2px 0;align-items:center">'+
           '<span style="color:'+e.color+';font-weight:500">'+h+' '+e.name+'</span>'+
-          '<span style="'+ageStyle+'">'+e.age+'日齢'+marker+'</span></div>';
+          '<span style="'+ageStyle+'">'+(e.age+1)+'日齢'+marker+'</span></div>';
       });
     });
   }
@@ -1625,7 +1625,7 @@ document.getElementById('xaxis-top').addEventListener('mousemove',function(e){
         var ageStyle=e.isTransfer?'font-family:monospace;color:#E24B4A;font-weight:700':'font-family:monospace;color:'+(dark?'#e2e8f0':'#111');
         html+='<div style="display:flex;justify-content:space-between;gap:16px;margin:2px 0;align-items:center">'+
           '<span style="color:'+ikc+';font-weight:500">育雛'+b+' '+e.name+'</span>'+
-          '<span style="'+ageStyle+'">'+e.age+'日齢'+marker+'</span></div>';
+          '<span style="'+ageStyle+'">'+(e.age+1)+'日齢'+marker+'</span></div>';
       });
     });
   }
