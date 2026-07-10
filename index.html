@@ -590,14 +590,14 @@ function drawLot(ctx,lot,idx,by,W,H,alpha){
   ctx.fillStyle=dark?'#1a1f2e':'#fff';ctx.strokeStyle=atLimit?'#E24B4A':lot.color;ctx.lineWidth=isDT?3:2.5;ctx.setLineDash([]);
   ctx.beginPath();ctx.rect(pt.x-sq,pt.y-sq,sq*2,sq*2);ctx.fill();ctx.stroke();
   if(isDT){ctx.strokeStyle=atLimit?'#E24B4A':lot.color;ctx.lineWidth=1.5;ctx.globalAlpha=alpha*0.35;ctx.beginPath();ctx.arc(pt.x,pt.y,11,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=alpha;}
-  var ds=td.toLocaleDateString('ja-JP',{year:'2-digit',month:'numeric',day:'numeric'}),as=tAge+'日齢'+(atLimit?' (上限)':''),fs=Math.max(8,Math.round(12*zoomLevel));
+  var ds=td.toLocaleDateString('ja-JP',{year:'2-digit',month:'numeric',day:'numeric'}),as=(tAge+1)+'日齢'+(atLimit?' (上限)':''),fs=Math.max(8,Math.round(12*zoomLevel));
   ctx.font='500 '+fs+'px monospace';var lw=Math.max(ctx.measureText(ds).width,ctx.measureText(as).width)+12,lh=fs*2+12;
   var lx=pt.x-lw/2,ly=pt.y-lh-10;if(ly<0)ly=pt.y+sq+6;if(lx+lw>W)lx=W-lw-2;if(lx<0)lx=2;
   ctx.fillStyle=dark?'rgba(20,25,40,0.92)':'rgba(255,255,255,0.95)';ctx.strokeStyle='#E24B4A';ctx.lineWidth=1.5;ctx.setLineDash([]);
   rrect(ctx,lx,ly,lw,lh,3);ctx.fill();ctx.stroke();
   ctx.fillStyle='#E24B4A';ctx.textAlign='left';ctx.font='500 '+fs+'px monospace';ctx.fillText(as,lx+6,ly+fs+1);ctx.font='500 '+(fs-1)+'px monospace';ctx.fillText(ds,lx+6,ly+fs*2+5);
   // アウトラベル
-  var l1=over?(age+'日齢 ⚠超過'):age+'日齢',l2=addDays(feed,age).toLocaleDateString('ja-JP',{year:'2-digit',month:'numeric',day:'numeric'}),fs2=Math.max(8,Math.round(13*zoomLevel));
+  var l1=over?((age+1)+'日齢 ⚠超過'):(age+1)+'日齢',l2=addDays(feed,age).toLocaleDateString('ja-JP',{year:'2-digit',month:'numeric',day:'numeric'}),fs2=Math.max(8,Math.round(13*zoomLevel));
   ctx.font='500 '+fs2+'px monospace';var bw=Math.max(ctx.measureText(l1).width,ctx.measureText(l2).width)+14,bh=fs2*2+14;
   var bx=p2.x+Math.cos(ang)*8,by2=p2.y+Math.sin(ang)*8;if(bx+bw>W)bx=p2.x-bw-4;if(by2+bh>H)by2=p2.y-bh-4;if(by2<0)by2=p2.y+4;
   ctx.fillStyle=dark?'rgba(20,25,40,0.92)':'rgba(255,255,255,0.95)';ctx.strokeStyle='#E24B4A';ctx.lineWidth=1.5;ctx.setLineDash([]);
@@ -1189,7 +1189,7 @@ function exportPDF(){
     if(hasMolt){var pmS=toP(addDays(feed,mS2),mS2),pmE=toP(addDays(feed,mE2),mE2),ms=5*SCALE;diam2(pmS.x,pmS.y,ms);pdfML(pmS.x,pmS.y,mS2+'日齢',addDays(feed,mS2).toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'}),mxX,mxY);diam2(pmE.x,pmE.y,ms);}
     var pt=toP(td,tAge),sq=4*SCALE,atLimit=(tAge>=MAX_TRANSFER);
     ctx.fillStyle='#fff';ctx.strokeStyle=atLimit?'#E24B4A':lot.color;ctx.lineWidth=1.5*SCALE;ctx.setLineDash([]);ctx.beginPath();ctx.rect(pt.x-sq,pt.y-sq,sq*2,sq*2);ctx.fill();ctx.stroke();
-    var ds=td.toLocaleDateString('ja-JP',{year:'2-digit',month:'numeric',day:'numeric'}),as2=tAge+'日齢'+(atLimit?' (上限)':''),tfs=7*SCALE;
+    var ds=td.toLocaleDateString('ja-JP',{year:'2-digit',month:'numeric',day:'numeric'}),as2=(tAge+1)+'日齢'+(atLimit?' (上限)':''),tfs=7*SCALE;
     ctx.font='500 '+tfs+'px monospace';var tlw=Math.max(ctx.measureText(ds).width,ctx.measureText(as2).width)+8*SCALE,tlh=tfs*2+8*SCALE;
     var lx=pt.x-tlw/2,ly=pt.y-tlh-7*SCALE;if(ly<OY+sXH)ly=pt.y+sq+4*SCALE;if(lx+tlw>mxX)lx=mxX-tlw-2*SCALE;if(lx<OX+sYW)lx=OX+sYW+2*SCALE;
     ctx.fillStyle='rgba(255,255,255,0.93)';ctx.strokeStyle='#E24B4A';ctx.lineWidth=SCALE;rr(lx,ly,tlw,tlh,2*SCALE);ctx.fill();ctx.stroke();
